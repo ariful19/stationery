@@ -11,6 +11,7 @@ import {
   exampleInvoicePdfRequest,
   examplePayment,
   examplePaymentCreate,
+  examplePaymentsLedger,
   exampleProduct,
   exampleProductCreate,
   exampleSalesReport,
@@ -23,6 +24,8 @@ import {
   paymentSchema,
   productCreateSchema,
   productSchema,
+  paymentsLedgerQuerySchema,
+  paymentsLedgerSchema,
   salesReportQuerySchema,
   salesReportSchema
 } from './index.js';
@@ -61,10 +64,16 @@ describe('shared schemas', () => {
     expect(() => healthCheckSchema.parse(healthCheckExample)).not.toThrow();
     expect(() => duesReportSchema.parse(exampleDuesReport)).not.toThrow();
     expect(() => salesReportSchema.parse(exampleSalesReport)).not.toThrow();
+    expect(() => paymentsLedgerSchema.parse(examplePaymentsLedger)).not.toThrow();
   });
 
   it('applies default grouping in sales report query', () => {
     const result = salesReportQuerySchema.parse({});
     expect(result.groupBy).toBe('month');
+  });
+
+  it('defaults ledger direction to descending', () => {
+    const query = paymentsLedgerQuerySchema.parse({});
+    expect(query.direction).toBe('desc');
   });
 });

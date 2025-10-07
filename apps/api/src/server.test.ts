@@ -109,13 +109,42 @@ describe('API server', () => {
 
     const duesReport = await request(app).get('/api/v1/reports/dues');
     expect(duesReport.status).toBe(200);
-    expect(duesReport.body.customers[0].balanceCents).toBe(
+    expect(duesReport.body.summary.totalBalanceCents).toBe(
       invoiceResponse.body.grandTotalCents - paymentPayload.amountCents
     );
+    expect(duesReport.body.summary.totalInvoicedCents).toBe(invoiceResponse.body.grandTotalCents);
 
-    const salesReport = await request(app).get('/api/v1/reports/sales');
+    const salesReport = await request(app).get('/api/v1/reports/sales').query({ groupBy: 'month' });
     expect(salesReport.status).toBe(200);
     expect(salesReport.body.rows.length).toBeGreaterThan(0);
+    expect(salesReport.body.summary.totalInvoicesCount).toBeGreaterThan(0);
+
+    const paymentsLedger = await request(app).get('/api/v1/reports/payments');
+    expect(paymentsLedger.status).toBe(200);
+    expect(paymentsLedger.body.entries.length).toBe(1);
+    expect(paymentsLedger.body.summary.totalPaidCents).toBe(paymentPayload.amountCents);
+
+    expect(paymentsLedger.body.summary.totalPaidCents).toBe(
+      duesReport.body.summary.totalInvoicedCents - duesReport.body.summary.totalBalanceCents
+    );
+
+    const salesCsv = await request(app).get('/api/v1/reports/sales.csv');
+    expect(salesCsv.status).toBe(200);
+    expect(salesCsv.headers['content-type']).toContain('text/csv');
+    expect(salesCsv.text).toContain('Period');
+
+    const duesPdf = await request(app)
+      .get('/api/v1/reports/dues.pdf')
+      .buffer()
+      .parse((res, callback) => {
+        const chunks: Uint8Array[] = [];
+        res.on('data', chunk => chunks.push(chunk));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+
+    expect(duesPdf.status).toBe(200);
+    expect(duesPdf.headers['content-type']).toBe('application/pdf');
+    expect(duesPdf.body.length).toBeGreaterThan(0);
 
     const pdfResponse = await request(app)
       .post(`/api/v1/invoices/${invoiceId}/pdf`)
