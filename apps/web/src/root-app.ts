@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { createGreeting } from '@stationery/shared';
+import { exampleCustomer } from '@stationery/shared';
 
 @customElement('app-root')
 export class AppRoot extends LitElement {
@@ -37,7 +37,7 @@ export class AppRoot extends LitElement {
   `;
 
   @state()
-  private message = createGreeting('from the shared package');
+  private message = `Hello, ${exampleCustomer.name}!`;
 
   protected render() {
     return html`

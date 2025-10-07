@@ -1,15 +1,28 @@
 import express from 'express';
-import { healthRouter } from './routes/health.js';
+import swaggerUi from 'swagger-ui-express';
+import { apiRouter } from './routes/index.js';
+import { errorHandler, notFoundHandler } from './middleware/error.js';
+import { createOpenApiDocument } from './docs/openapi.js';
 
 export function createServer() {
   const app = express();
 
   app.use(express.json());
-  app.use('/health', healthRouter);
+  const openApiDocument = createOpenApiDocument();
+
+  app.get('/docs/openapi.json', (_req, res) => {
+    res.json(openApiDocument);
+  });
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
   app.get('/', (_req, res) => {
-    res.json({ message: 'Stationery API' });
+    res.json({ message: 'Stationery API', docs: '/docs' });
   });
+
+  app.use('/api/v1', apiRouter);
+
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }
