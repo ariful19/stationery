@@ -4,6 +4,7 @@ import {
   customerListResponseSchema,
   customerSchema,
   duesReportSchema,
+  duesReportQuerySchema,
   invoiceCreateSchema,
   invoiceListQuerySchema,
   invoiceListResponseSchema,
@@ -12,6 +13,8 @@ import {
   paymentListQuerySchema,
   paymentListResponseSchema,
   paymentSchema,
+  paymentsLedgerQuerySchema,
+  paymentsLedgerSchema,
   productCreateSchema,
   productListQuerySchema,
   productListResponseSchema,
@@ -35,8 +38,11 @@ import {
   type ProductListQuery,
   type ProductListResponse,
   type DuesReport,
+  type DuesReportQuery,
   type SalesReport,
-  type SalesReportQuery
+  type SalesReportQuery,
+  type PaymentsLedger,
+  type PaymentsLedgerQuery
 } from '@stationery/shared';
 import { z } from 'zod';
 
@@ -176,9 +182,10 @@ export const fetchPayments = async (query: PaymentListQuery = {}) =>
     schema: paymentListResponseSchema
   });
 
-export const fetchDuesReport = async () =>
+export const fetchDuesReport = async (query: DuesReportQuery = {}) =>
   request<DuesReport>('/reports/dues', {
     method: 'GET',
+    query: duesReportQuerySchema.parse(query),
     schema: duesReportSchema
   });
 
@@ -188,6 +195,48 @@ export const fetchSalesReport = async (query: SalesReportQuery) =>
     query: salesReportQuerySchema.parse(query),
     schema: salesReportSchema
   });
+
+export const fetchPaymentsLedger = async (query: PaymentsLedgerQuery = {}) =>
+  request<PaymentsLedger>('/reports/payments', {
+    method: 'GET',
+    query: paymentsLedgerQuerySchema.parse(query),
+    schema: paymentsLedgerSchema
+  });
+
+const downloadReport = async (path: string, query?: Record<string, unknown>) => {
+  const normalizedQuery = query
+    ? (Object.fromEntries(
+        Object.entries(query).map(([key, value]) => [
+          key,
+          value as string | number | boolean | undefined | null
+        ])
+      ) as Query)
+    : undefined;
+  const url = buildUrl(path, normalizedQuery);
+  const response = await fetch(url, { method: 'GET' });
+  if (!response.ok) {
+    throw new ApiClientError(response.statusText || 'Failed to download report', response.status);
+  }
+  return response.blob();
+};
+
+export const downloadDuesReportCsv = (query: DuesReportQuery = {}) =>
+  downloadReport('/reports/dues.csv', duesReportQuerySchema.parse(query));
+
+export const downloadDuesReportPdf = (query: DuesReportQuery = {}) =>
+  downloadReport('/reports/dues.pdf', duesReportQuerySchema.parse(query));
+
+export const downloadSalesReportCsv = (query: SalesReportQuery) =>
+  downloadReport('/reports/sales.csv', salesReportQuerySchema.parse(query));
+
+export const downloadSalesReportPdf = (query: SalesReportQuery) =>
+  downloadReport('/reports/sales.pdf', salesReportQuerySchema.parse(query));
+
+export const downloadPaymentsLedgerCsv = (query: PaymentsLedgerQuery = {}) =>
+  downloadReport('/reports/payments.csv', paymentsLedgerQuerySchema.parse(query));
+
+export const downloadPaymentsLedgerPdf = (query: PaymentsLedgerQuery = {}) =>
+  downloadReport('/reports/payments.pdf', paymentsLedgerQuerySchema.parse(query));
 
 export const requestInvoicePdf = async (invoiceId: number, payload?: Record<string, unknown>) => {
   const response = await fetch(buildUrl(`/invoices/${invoiceId}/pdf`), {
@@ -217,6 +266,9 @@ export type {
   PaymentCreateInput,
   PaymentListResponse,
   DuesReport,
+  DuesReportQuery,
   SalesReport,
-  SalesReportQuery
+  SalesReportQuery,
+  PaymentsLedger,
+  PaymentsLedgerQuery
 };

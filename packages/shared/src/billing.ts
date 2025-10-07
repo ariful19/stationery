@@ -1,5 +1,3 @@
-import Decimal from 'decimal.js';
-
 /**
  * Supported rounding modes for currency calculations.
  * - `HALF_UP`: values with a fractional part of 0.5 or greater round away from zero.
@@ -24,27 +22,66 @@ export interface RoundingConfig {
   mode?: RoundingMode;
 }
 
-const roundingModeMap: Record<RoundingMode, Decimal.Rounding> = {
-  HALF_UP: Decimal.ROUND_HALF_UP,
-  HALF_DOWN: Decimal.ROUND_HALF_DOWN,
-  HALF_EVEN: Decimal.ROUND_HALF_EVEN,
-  CEIL: Decimal.ROUND_CEIL,
-  FLOOR: Decimal.ROUND_FLOOR,
-  TRUNCATE: Decimal.ROUND_DOWN
-};
-
 const getRoundingConfig = (config?: RoundingConfig) => ({
   decimals: config?.decimals ?? 0,
   mode: config?.mode ?? 'HALF_EVEN'
 });
 
+const EPSILON = 1e-10;
+
+const toFixedPrecision = (value: number, precision: number) =>
+  Math.round(value * precision) / precision;
+
+const roundScaledValue = (scaled: number, mode: RoundingMode) => {
+  if (!Number.isFinite(scaled)) return scaled;
+
+  const normalized = toFixedPrecision(scaled, 1e9);
+  if (Number.isInteger(normalized)) {
+    return normalized;
+  }
+
+  const sign = normalized < 0 ? -1 : 1;
+  const absolute = Math.abs(normalized);
+  const floorAbs = Math.floor(absolute);
+  const fraction = absolute - floorAbs;
+  const ceilAbs = fraction > 0 ? floorAbs + 1 : floorAbs;
+
+  const isTie = Math.abs(fraction - 0.5) <= EPSILON;
+
+  switch (mode) {
+    case 'TRUNCATE':
+      return Math.trunc(normalized);
+    case 'CEIL':
+      return Math.ceil(normalized);
+    case 'FLOOR':
+      return Math.floor(normalized);
+    case 'HALF_UP':
+      if (fraction > 0.5 + EPSILON) return sign * ceilAbs;
+      if (fraction < 0.5 - EPSILON) return sign * floorAbs;
+      return sign * ceilAbs;
+    case 'HALF_DOWN':
+      if (fraction > 0.5 + EPSILON) return sign * ceilAbs;
+      if (fraction < 0.5 - EPSILON) return sign * floorAbs;
+      return sign * floorAbs;
+    case 'HALF_EVEN':
+    default:
+      if (fraction > 0.5 + EPSILON) return sign * ceilAbs;
+      if (fraction < 0.5 - EPSILON) return sign * floorAbs;
+      const roundedAbs = isTie && floorAbs % 2 !== 0 ? ceilAbs : floorAbs;
+      return sign * roundedAbs;
+  }
+};
+
 /**
- * Rounds a numeric value deterministically by leveraging Decimal.js. The function does not mutate
- * the provided number and is stable across runtimes, making it suitable for financial calculations.
+ * Rounds a numeric value deterministically using configurable strategies. The implementation avoids
+ * floating-point drift by normalizing the scaled value before applying the chosen rounding mode.
  */
 export const roundValue = (value: number, config?: RoundingConfig) => {
   const { decimals, mode } = getRoundingConfig(config);
-  return new Decimal(value).toDecimalPlaces(decimals, roundingModeMap[mode]).toNumber();
+  const factor = 10 ** decimals;
+  const scaled = value * factor;
+  const rounded = roundScaledValue(scaled, mode);
+  return toFixedPrecision(rounded / factor, 1e9);
 };
 
 export interface InvoiceNumberConfig {

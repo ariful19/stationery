@@ -5,6 +5,7 @@ import {
   customerListQuerySchema,
   customerListResponseSchema,
   customerSchema,
+  duesReportQuerySchema,
   duesReportSchema,
   exampleCustomer,
   exampleCustomerCreate,
@@ -15,6 +16,7 @@ import {
   exampleInvoicePdfRequest,
   examplePayment,
   examplePaymentCreate,
+  examplePaymentsLedger,
   exampleProduct,
   exampleProductCreate,
   exampleSalesReport,
@@ -33,6 +35,8 @@ import {
   productListQuerySchema,
   productListResponseSchema,
   productSchema,
+  paymentsLedgerQuerySchema,
+  paymentsLedgerSchema,
   salesReportQuerySchema,
   salesReportSchema
 } from '@stationery/shared';
@@ -66,6 +70,7 @@ registry.register('PaymentCreate', paymentCreateSchema);
 registry.register('PaymentListResponse', paymentListResponseSchema);
 registry.register('DuesReport', duesReportSchema);
 registry.register('SalesReport', salesReportSchema);
+registry.register('PaymentsLedger', paymentsLedgerSchema);
 
 registry.registerPath({
   method: 'get',
@@ -410,6 +415,7 @@ registry.registerPath({
   method: 'get',
   path: '/api/v1/reports/dues',
   description: 'Outstanding balances per customer',
+  request: { query: duesReportQuerySchema },
   responses: {
     200: {
       description: 'Dues report',
@@ -427,6 +433,19 @@ registry.registerPath({
     200: {
       description: 'Sales report',
       content: { 'application/json': { schema: salesReportSchema, example: exampleSalesReport } }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/v1/reports/payments',
+  description: 'Payments ledger with running totals',
+  request: { query: paymentsLedgerQuerySchema },
+  responses: {
+    200: {
+      description: 'Payments ledger',
+      content: { 'application/json': { schema: paymentsLedgerSchema, example: examplePaymentsLedger } }
     }
   }
 });
