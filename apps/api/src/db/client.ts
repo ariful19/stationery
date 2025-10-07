@@ -1,15 +1,18 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { healthChecks } from './schema.js';
+import { mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
-const sqlite = new Database(':memory:');
+const databaseUrl = process.env.DATABASE_URL ?? join(process.cwd(), 'stationery.sqlite');
+const databaseDir = dirname(databaseUrl);
 
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS health_checks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    note TEXT NOT NULL
-  );
-`);
+mkdirSync(databaseDir, { recursive: true });
+
+export const sqlite = new Database(databaseUrl);
+
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('foreign_keys = ON');
 
 export const db = drizzle(sqlite);
-export { healthChecks };
+
+export * from './schema.js';
