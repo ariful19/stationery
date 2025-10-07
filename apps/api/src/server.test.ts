@@ -4,6 +4,7 @@ import request from 'supertest';
 import {
   exampleCustomerCreate,
   exampleInvoiceCreate,
+  exampleInvoicePdfRequest,
   examplePaymentCreate,
   exampleProductCreate
 } from '@stationery/shared';
@@ -116,8 +117,24 @@ describe('API server', () => {
     expect(salesReport.status).toBe(200);
     expect(salesReport.body.rows.length).toBeGreaterThan(0);
 
+    const pdfResponse = await request(app)
+      .post(`/api/v1/invoices/${invoiceId}/pdf`)
+      .send(exampleInvoicePdfRequest)
+      .buffer()
+      .parse((res, callback) => {
+        const chunks: Uint8Array[] = [];
+        res.on('data', chunk => chunks.push(chunk));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+
+    expect(pdfResponse.status).toBe(200);
+    expect(pdfResponse.headers['content-type']).toBe('application/pdf');
+    expect(pdfResponse.headers['content-disposition']).toContain('attachment');
+    expect(pdfResponse.body.length).toBeGreaterThan(0);
+
     const docsResponse = await request(app).get('/docs/openapi.json');
     expect(docsResponse.status).toBe(200);
     expect(docsResponse.body.paths['/api/v1/invoices']).toBeDefined();
+    expect(docsResponse.body.paths['/api/v1/invoices/{id}/pdf']).toBeDefined();
   });
 });

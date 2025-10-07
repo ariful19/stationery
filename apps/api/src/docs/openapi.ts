@@ -12,6 +12,7 @@ import {
   exampleDuesReport,
   exampleInvoice,
   exampleInvoiceCreate,
+  exampleInvoicePdfRequest,
   examplePayment,
   examplePaymentCreate,
   exampleProduct,
@@ -23,6 +24,7 @@ import {
   invoiceListQuerySchema,
   invoiceListResponseSchema,
   invoiceSchema,
+  invoicePdfRequestSchema,
   paymentCreateSchema,
   paymentListQuerySchema,
   paymentListResponseSchema,
@@ -58,6 +60,7 @@ registry.register('ProductListResponse', productListResponseSchema);
 registry.register('Invoice', invoiceSchema);
 registry.register('InvoiceCreate', invoiceCreateSchema);
 registry.register('InvoiceListResponse', invoiceListResponseSchema);
+registry.register('InvoicePdfRequest', invoicePdfRequestSchema);
 registry.register('Payment', paymentSchema);
 registry.register('PaymentCreate', paymentCreateSchema);
 registry.register('PaymentListResponse', paymentListResponseSchema);
@@ -305,6 +308,35 @@ registry.registerPath({
       description: 'Invoice',
       content: { 'application/json': { schema: invoiceSchema, example: exampleInvoice } }
     },
+    404: { description: 'Invoice missing', content: { 'application/json': { schema: errorSchema } } }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/v1/invoices/{id}/pdf',
+  description: 'Render an invoice as a PDF document',
+  request: {
+    params: z.object({ id: z.string() }),
+    body: {
+      content: {
+        'application/json': {
+          schema: invoicePdfRequestSchema,
+          example: exampleInvoicePdfRequest
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Invoice PDF ready to download',
+      content: {
+        'application/pdf': {
+          schema: z.string().openapi({ type: 'string', format: 'binary' })
+        }
+      }
+    },
+    400: { description: 'Invalid request', content: { 'application/json': { schema: errorSchema } } },
     404: { description: 'Invoice missing', content: { 'application/json': { schema: errorSchema } } }
   }
 });

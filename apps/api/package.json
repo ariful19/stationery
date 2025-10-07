@@ -17,13 +17,14 @@
     "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "7.1.0",
     "@stationery/shared": "workspace:*",
     "better-sqlite3": "9.4.5",
     "drizzle-orm": "0.30.10",
     "express": "4.19.2",
+    "puppeteer": "^22.15.0",
     "swagger-ui-express": "5.0.1",
-    "zod": "3.23.8",
-    "@asteasolutions/zod-to-openapi": "7.1.0"
+    "zod": "3.23.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.43.1",
