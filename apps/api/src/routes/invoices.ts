@@ -2,11 +2,16 @@ import { Router } from 'express';
 import type { SQL } from 'drizzle-orm';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
+  buildInvoiceNumber,
+  calculateInvoiceTotals,
   invoiceCreateSchema,
   invoiceListQuerySchema,
   invoiceListResponseSchema,
   invoiceSchema,
-  invoiceStatusSchema
+  invoiceStatusSchema,
+  resolveInvoiceSeriesKey,
+  type InvoiceNumberConfig,
+  type RoundingMode
 } from '@stationery/shared';
 import { ApiError, createNotFoundError } from '../errors.js';
 import {
@@ -26,6 +31,29 @@ import type {
 const router = Router();
 
 const normalizeIso = (value: string | null | undefined) => toIsoDateTime(value);
+
+const roundingModes: RoundingMode[] = [
+  'HALF_UP',
+  'HALF_DOWN',
+  'HALF_EVEN',
+  'CEIL',
+  'FLOOR',
+  'TRUNCATE'
+];
+
+const envRoundingMode = process.env.BILLING_ROUNDING_MODE as RoundingMode | undefined;
+const roundingMode = envRoundingMode && roundingModes.includes(envRoundingMode)
+  ? envRoundingMode
+  : 'HALF_EVEN';
+
+const invoiceRoundingConfig = { decimals: 0, mode: roundingMode } as const;
+
+const parsedSequencePadding = Number.parseInt(process.env.INVOICE_SEQUENCE_PADDING ?? '', 10);
+
+const invoiceNumberConfig: InvoiceNumberConfig = {
+  prefix: process.env.INVOICE_PREFIX ?? 'INV',
+  sequencePadding: Number.isFinite(parsedSequencePadding) ? parsedSequencePadding : undefined
+};
 
 type InvoiceRow = InferSelectModel<typeof invoices> & {
   customer?: InferSelectModel<typeof customers> | null;
@@ -54,19 +82,6 @@ const normalizeInvoice = (invoice: InvoiceRow) =>
       paidAt: normalizeIso(payment.paidAt)
     }))
   });
-
-const buildInvoiceNumber = () => {
-  const now = new Date();
-  const prefix = `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const likePattern = `${prefix}%`;
-  const countResult = db
-    .select({ count: sql<number>`count(*)` })
-    .from(invoices)
-    .where(sql`invoice_no LIKE ${likePattern}`)
-    .get();
-  const nextSequence = (countResult?.count ?? 0) + 1;
-  return `${prefix}-${String(nextSequence).padStart(4, '0')}`;
-};
 
 const fetchInvoiceById = (id: number) =>
   db.query.invoices.findFirst({
@@ -100,18 +115,40 @@ router.post(
       throw new ApiError(400, 'invalid_product', 'One or more products do not exist');
     }
 
-    const itemsWithTotals = payload.items.map(item => ({
-      ...item,
-      lineTotalCents: item.quantity * item.unitPriceCents
-    }));
+    const totals = calculateInvoiceTotals(
+      {
+        items: payload.items.map(item => ({
+          productId: item.productId,
+          description: item.description,
+          quantity: item.quantity,
+          unitPriceCents: item.unitPriceCents
+        })),
+        discountCents: payload.discountCents,
+        taxCents: payload.taxCents
+      },
+      invoiceRoundingConfig
+    );
 
-    const subTotalCents = itemsWithTotals.reduce((sum, item) => sum + item.lineTotalCents, 0);
-    const discountCents = payload.discountCents ?? 0;
-    const taxCents = payload.taxCents ?? 0;
-    const grandTotalCents = Math.max(subTotalCents - discountCents + taxCents, 0);
+    const issueDateIso = payload.issueDate ?? new Date().toISOString();
+    const issueDate = new Date(issueDateIso);
 
-    const invoiceNo = payload.invoiceNo ?? buildInvoiceNumber();
-    const issueDate = payload.issueDate ?? new Date().toISOString();
+    if (Number.isNaN(issueDate.getTime())) {
+      throw new ApiError(400, 'invalid_issue_date', 'Issue date is invalid');
+    }
+
+    const invoiceNo =
+      payload.invoiceNo ??
+      (() => {
+        const seriesKey = resolveInvoiceSeriesKey(issueDate, invoiceNumberConfig);
+        const likePattern = `${seriesKey}-%`;
+        const countResult = db
+          .select({ count: sql<number>`count(*)` })
+          .from(invoices)
+          .where(sql`invoice_no LIKE ${likePattern}`)
+          .get();
+        const nextSequence = (countResult?.count ?? 0) + 1;
+        return buildInvoiceNumber(nextSequence, issueDate, invoiceNumberConfig);
+      })();
 
     const insertedId = db.transaction(tx => {
       const insertedInvoice = tx
@@ -119,11 +156,11 @@ router.post(
         .values({
           invoiceNo,
           customerId: payload.customerId,
-          issueDate,
-          subTotalCents,
-          discountCents,
-          taxCents,
-          grandTotalCents,
+          issueDate: issueDateIso,
+          subTotalCents: totals.subTotalCents,
+          discountCents: totals.discountCents,
+          taxCents: totals.taxCents,
+          grandTotalCents: totals.grandTotalCents,
           status: payload.status ?? invoiceStatusSchema.enum.draft,
           notes: payload.notes ?? null
         })
@@ -136,7 +173,7 @@ router.post(
 
       tx.insert(invoiceItems)
         .values(
-          itemsWithTotals.map(item => ({
+          totals.items.map(item => ({
             invoiceId: insertedInvoice.id,
             productId: item.productId,
             description: item.description,

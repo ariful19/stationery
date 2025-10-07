@@ -1,0 +1,512 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`calculateInvoiceTotals > computes large totals with deterministic rounding 1`] = `
+{
+  "discountCents": 250000,
+  "grandTotalCents": 8145136,
+  "items": [
+    {
+      "lineTotalCents": 4081,
+      "quantity": 3.1415,
+      "unitPriceCents": 1299,
+    },
+    {
+      "lineTotalCents": 5384,
+      "quantity": 4.141500000000001,
+      "unitPriceCents": 1300,
+    },
+    {
+      "lineTotalCents": 6689,
+      "quantity": 5.141500000000001,
+      "unitPriceCents": 1301,
+    },
+    {
+      "lineTotalCents": 7996,
+      "quantity": 6.141500000000001,
+      "unitPriceCents": 1302,
+    },
+    {
+      "lineTotalCents": 9305,
+      "quantity": 7.141500000000001,
+      "unitPriceCents": 1303,
+    },
+    {
+      "lineTotalCents": 10617,
+      "quantity": 8.1415,
+      "unitPriceCents": 1304,
+    },
+    {
+      "lineTotalCents": 11930,
+      "quantity": 9.1415,
+      "unitPriceCents": 1305,
+    },
+    {
+      "lineTotalCents": 13245,
+      "quantity": 10.1415,
+      "unitPriceCents": 1306,
+    },
+    {
+      "lineTotalCents": 14562,
+      "quantity": 11.1415,
+      "unitPriceCents": 1307,
+    },
+    {
+      "lineTotalCents": 15881,
+      "quantity": 12.1415,
+      "unitPriceCents": 1308,
+    },
+    {
+      "lineTotalCents": 17202,
+      "quantity": 13.1415,
+      "unitPriceCents": 1309,
+    },
+    {
+      "lineTotalCents": 18525,
+      "quantity": 14.1415,
+      "unitPriceCents": 1310,
+    },
+    {
+      "lineTotalCents": 19851,
+      "quantity": 15.1415,
+      "unitPriceCents": 1311,
+    },
+    {
+      "lineTotalCents": 21178,
+      "quantity": 16.1415,
+      "unitPriceCents": 1312,
+    },
+    {
+      "lineTotalCents": 22507,
+      "quantity": 17.1415,
+      "unitPriceCents": 1313,
+    },
+    {
+      "lineTotalCents": 23838,
+      "quantity": 18.1415,
+      "unitPriceCents": 1314,
+    },
+    {
+      "lineTotalCents": 25171,
+      "quantity": 19.1415,
+      "unitPriceCents": 1315,
+    },
+    {
+      "lineTotalCents": 26506,
+      "quantity": 20.1415,
+      "unitPriceCents": 1316,
+    },
+    {
+      "lineTotalCents": 27843,
+      "quantity": 21.1415,
+      "unitPriceCents": 1317,
+    },
+    {
+      "lineTotalCents": 29182,
+      "quantity": 22.1415,
+      "unitPriceCents": 1318,
+    },
+    {
+      "lineTotalCents": 30524,
+      "quantity": 23.1415,
+      "unitPriceCents": 1319,
+    },
+    {
+      "lineTotalCents": 31867,
+      "quantity": 24.1415,
+      "unitPriceCents": 1320,
+    },
+    {
+      "lineTotalCents": 33212,
+      "quantity": 25.1415,
+      "unitPriceCents": 1321,
+    },
+    {
+      "lineTotalCents": 34559,
+      "quantity": 26.1415,
+      "unitPriceCents": 1322,
+    },
+    {
+      "lineTotalCents": 35908,
+      "quantity": 27.1415,
+      "unitPriceCents": 1323,
+    },
+    {
+      "lineTotalCents": 37259,
+      "quantity": 28.1415,
+      "unitPriceCents": 1324,
+    },
+    {
+      "lineTotalCents": 38612,
+      "quantity": 29.1415,
+      "unitPriceCents": 1325,
+    },
+    {
+      "lineTotalCents": 39968,
+      "quantity": 30.1415,
+      "unitPriceCents": 1326,
+    },
+    {
+      "lineTotalCents": 41325,
+      "quantity": 31.1415,
+      "unitPriceCents": 1327,
+    },
+    {
+      "lineTotalCents": 42684,
+      "quantity": 32.1415,
+      "unitPriceCents": 1328,
+    },
+    {
+      "lineTotalCents": 44045,
+      "quantity": 33.1415,
+      "unitPriceCents": 1329,
+    },
+    {
+      "lineTotalCents": 45408,
+      "quantity": 34.1415,
+      "unitPriceCents": 1330,
+    },
+    {
+      "lineTotalCents": 46773,
+      "quantity": 35.1415,
+      "unitPriceCents": 1331,
+    },
+    {
+      "lineTotalCents": 48140,
+      "quantity": 36.1415,
+      "unitPriceCents": 1332,
+    },
+    {
+      "lineTotalCents": 49510,
+      "quantity": 37.1415,
+      "unitPriceCents": 1333,
+    },
+    {
+      "lineTotalCents": 50881,
+      "quantity": 38.1415,
+      "unitPriceCents": 1334,
+    },
+    {
+      "lineTotalCents": 52254,
+      "quantity": 39.1415,
+      "unitPriceCents": 1335,
+    },
+    {
+      "lineTotalCents": 53629,
+      "quantity": 40.1415,
+      "unitPriceCents": 1336,
+    },
+    {
+      "lineTotalCents": 55006,
+      "quantity": 41.1415,
+      "unitPriceCents": 1337,
+    },
+    {
+      "lineTotalCents": 56385,
+      "quantity": 42.1415,
+      "unitPriceCents": 1338,
+    },
+    {
+      "lineTotalCents": 57766,
+      "quantity": 43.1415,
+      "unitPriceCents": 1339,
+    },
+    {
+      "lineTotalCents": 59150,
+      "quantity": 44.1415,
+      "unitPriceCents": 1340,
+    },
+    {
+      "lineTotalCents": 60535,
+      "quantity": 45.1415,
+      "unitPriceCents": 1341,
+    },
+    {
+      "lineTotalCents": 61922,
+      "quantity": 46.1415,
+      "unitPriceCents": 1342,
+    },
+    {
+      "lineTotalCents": 63311,
+      "quantity": 47.1415,
+      "unitPriceCents": 1343,
+    },
+    {
+      "lineTotalCents": 64702,
+      "quantity": 48.1415,
+      "unitPriceCents": 1344,
+    },
+    {
+      "lineTotalCents": 66095,
+      "quantity": 49.1415,
+      "unitPriceCents": 1345,
+    },
+    {
+      "lineTotalCents": 67490,
+      "quantity": 50.1415,
+      "unitPriceCents": 1346,
+    },
+    {
+      "lineTotalCents": 68888,
+      "quantity": 51.1415,
+      "unitPriceCents": 1347,
+    },
+    {
+      "lineTotalCents": 70287,
+      "quantity": 52.1415,
+      "unitPriceCents": 1348,
+    },
+    {
+      "lineTotalCents": 71688,
+      "quantity": 53.1415,
+      "unitPriceCents": 1349,
+    },
+    {
+      "lineTotalCents": 73091,
+      "quantity": 54.1415,
+      "unitPriceCents": 1350,
+    },
+    {
+      "lineTotalCents": 74496,
+      "quantity": 55.1415,
+      "unitPriceCents": 1351,
+    },
+    {
+      "lineTotalCents": 75903,
+      "quantity": 56.1415,
+      "unitPriceCents": 1352,
+    },
+    {
+      "lineTotalCents": 77312,
+      "quantity": 57.1415,
+      "unitPriceCents": 1353,
+    },
+    {
+      "lineTotalCents": 78724,
+      "quantity": 58.1415,
+      "unitPriceCents": 1354,
+    },
+    {
+      "lineTotalCents": 80137,
+      "quantity": 59.1415,
+      "unitPriceCents": 1355,
+    },
+    {
+      "lineTotalCents": 81552,
+      "quantity": 60.1415,
+      "unitPriceCents": 1356,
+    },
+    {
+      "lineTotalCents": 82969,
+      "quantity": 61.1415,
+      "unitPriceCents": 1357,
+    },
+    {
+      "lineTotalCents": 84388,
+      "quantity": 62.1415,
+      "unitPriceCents": 1358,
+    },
+    {
+      "lineTotalCents": 85809,
+      "quantity": 63.1415,
+      "unitPriceCents": 1359,
+    },
+    {
+      "lineTotalCents": 87232,
+      "quantity": 64.1415,
+      "unitPriceCents": 1360,
+    },
+    {
+      "lineTotalCents": 88658,
+      "quantity": 65.1415,
+      "unitPriceCents": 1361,
+    },
+    {
+      "lineTotalCents": 90085,
+      "quantity": 66.1415,
+      "unitPriceCents": 1362,
+    },
+    {
+      "lineTotalCents": 91514,
+      "quantity": 67.1415,
+      "unitPriceCents": 1363,
+    },
+    {
+      "lineTotalCents": 92945,
+      "quantity": 68.1415,
+      "unitPriceCents": 1364,
+    },
+    {
+      "lineTotalCents": 94378,
+      "quantity": 69.1415,
+      "unitPriceCents": 1365,
+    },
+    {
+      "lineTotalCents": 95813,
+      "quantity": 70.1415,
+      "unitPriceCents": 1366,
+    },
+    {
+      "lineTotalCents": 97250,
+      "quantity": 71.1415,
+      "unitPriceCents": 1367,
+    },
+    {
+      "lineTotalCents": 98690,
+      "quantity": 72.1415,
+      "unitPriceCents": 1368,
+    },
+    {
+      "lineTotalCents": 100131,
+      "quantity": 73.1415,
+      "unitPriceCents": 1369,
+    },
+    {
+      "lineTotalCents": 101574,
+      "quantity": 74.1415,
+      "unitPriceCents": 1370,
+    },
+    {
+      "lineTotalCents": 103019,
+      "quantity": 75.1415,
+      "unitPriceCents": 1371,
+    },
+    {
+      "lineTotalCents": 104466,
+      "quantity": 76.1415,
+      "unitPriceCents": 1372,
+    },
+    {
+      "lineTotalCents": 105915,
+      "quantity": 77.1415,
+      "unitPriceCents": 1373,
+    },
+    {
+      "lineTotalCents": 107366,
+      "quantity": 78.1415,
+      "unitPriceCents": 1374,
+    },
+    {
+      "lineTotalCents": 108820,
+      "quantity": 79.1415,
+      "unitPriceCents": 1375,
+    },
+    {
+      "lineTotalCents": 110275,
+      "quantity": 80.1415,
+      "unitPriceCents": 1376,
+    },
+    {
+      "lineTotalCents": 111732,
+      "quantity": 81.1415,
+      "unitPriceCents": 1377,
+    },
+    {
+      "lineTotalCents": 113191,
+      "quantity": 82.1415,
+      "unitPriceCents": 1378,
+    },
+    {
+      "lineTotalCents": 114652,
+      "quantity": 83.1415,
+      "unitPriceCents": 1379,
+    },
+    {
+      "lineTotalCents": 116115,
+      "quantity": 84.1415,
+      "unitPriceCents": 1380,
+    },
+    {
+      "lineTotalCents": 117580,
+      "quantity": 85.1415,
+      "unitPriceCents": 1381,
+    },
+    {
+      "lineTotalCents": 119048,
+      "quantity": 86.1415,
+      "unitPriceCents": 1382,
+    },
+    {
+      "lineTotalCents": 120517,
+      "quantity": 87.1415,
+      "unitPriceCents": 1383,
+    },
+    {
+      "lineTotalCents": 121988,
+      "quantity": 88.1415,
+      "unitPriceCents": 1384,
+    },
+    {
+      "lineTotalCents": 123461,
+      "quantity": 89.1415,
+      "unitPriceCents": 1385,
+    },
+    {
+      "lineTotalCents": 124936,
+      "quantity": 90.1415,
+      "unitPriceCents": 1386,
+    },
+    {
+      "lineTotalCents": 126413,
+      "quantity": 91.1415,
+      "unitPriceCents": 1387,
+    },
+    {
+      "lineTotalCents": 127892,
+      "quantity": 92.1415,
+      "unitPriceCents": 1388,
+    },
+    {
+      "lineTotalCents": 129374,
+      "quantity": 93.1415,
+      "unitPriceCents": 1389,
+    },
+    {
+      "lineTotalCents": 130857,
+      "quantity": 94.1415,
+      "unitPriceCents": 1390,
+    },
+    {
+      "lineTotalCents": 132342,
+      "quantity": 95.1415,
+      "unitPriceCents": 1391,
+    },
+    {
+      "lineTotalCents": 133829,
+      "quantity": 96.1415,
+      "unitPriceCents": 1392,
+    },
+    {
+      "lineTotalCents": 135318,
+      "quantity": 97.1415,
+      "unitPriceCents": 1393,
+    },
+    {
+      "lineTotalCents": 136809,
+      "quantity": 98.1415,
+      "unitPriceCents": 1394,
+    },
+    {
+      "lineTotalCents": 138302,
+      "quantity": 99.1415,
+      "unitPriceCents": 1395,
+    },
+    {
+      "lineTotalCents": 139798,
+      "quantity": 100.1415,
+      "unitPriceCents": 1396,
+    },
+    {
+      "lineTotalCents": 141295,
+      "quantity": 101.1415,
+      "unitPriceCents": 1397,
+    },
+    {
+      "lineTotalCents": 142794,
+      "quantity": 102.1415,
+      "unitPriceCents": 1398,
+    },
+  ],
+  "subTotalCents": 7182031,
+  "taxCents": 1213105,
+}
+`;
