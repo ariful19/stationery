@@ -11,6 +11,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "decimal.js": "^10.4.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
