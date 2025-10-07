@@ -9,6 +9,7 @@ import {
   invoiceListResponseSchema,
   invoiceSchema,
   invoiceStatusSchema,
+  invoicePdfRequestSchema,
   resolveInvoiceSeriesKey,
   type InvoiceNumberConfig,
   type RoundingMode
@@ -24,6 +25,8 @@ import {
 } from '../db/client.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { toIsoDateTime } from '../utils/datetime.js';
+import { getInvoicePdfRenderer } from '../services/invoice-pdf.js';
+import { maybePreviewPdf, sendPdfBuffer } from '../utils/pdf.js';
 import type {
   InferSelectModel
 } from 'drizzle-orm';
@@ -196,6 +199,46 @@ router.post(
     const payloadResponse = normalizeInvoice(record as InvoiceRow);
 
     res.status(201).json(payloadResponse);
+  })
+);
+
+router.post(
+  '/:id/pdf',
+  asyncHandler(async (req, res) => {
+    const id = Number.parseInt(req.params.id, 10);
+
+    if (!Number.isFinite(id)) {
+      throw new ApiError(400, 'invalid_invoice_id', 'Invoice id must be a number');
+    }
+
+    const invoiceRecord = await fetchInvoiceById(id);
+
+    if (!invoiceRecord) {
+      throw createNotFoundError('invoice', id);
+    }
+
+    const renderOptions = invoicePdfRequestSchema.parse(req.body ?? {});
+    const normalizedInvoice = normalizeInvoice(invoiceRecord as InvoiceRow);
+
+    const renderer = getInvoicePdfRenderer();
+    const pdfBuffer = await renderer.render(normalizedInvoice, {
+      variant: renderOptions.variant,
+      locale: renderOptions.locale,
+      currency: renderOptions.currency,
+      timezone: renderOptions.timezone,
+      direction: renderOptions.direction,
+      brand: renderOptions.brand
+    });
+
+    const previewPath = await maybePreviewPdf(pdfBuffer, normalizedInvoice.invoiceNo);
+    if (previewPath) {
+      res.setHeader('X-PDF-Preview-Path', previewPath);
+    }
+
+    const safeNumber = normalizedInvoice.invoiceNo.replace(/[^\w-]+/g, '_');
+    const filename = `${safeNumber || `INV-${normalizedInvoice.id}`}.pdf`;
+    res.status(200);
+    sendPdfBuffer(res, pdfBuffer, { filename });
   })
 );
 

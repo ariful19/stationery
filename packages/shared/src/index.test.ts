@@ -8,6 +8,7 @@ import {
   exampleDuesReport,
   exampleInvoice,
   exampleInvoiceCreate,
+  exampleInvoicePdfRequest,
   examplePayment,
   examplePaymentCreate,
   exampleProduct,
@@ -17,6 +18,7 @@ import {
   healthCheckSchema,
   invoiceCreateSchema,
   invoiceSchema,
+  invoicePdfRequestSchema,
   paymentCreateSchema,
   paymentSchema,
   productCreateSchema,
@@ -44,6 +46,10 @@ describe('shared schemas', () => {
   it('validates invoice payloads and relations', () => {
     expect(() => invoiceCreateSchema.parse(exampleInvoiceCreate)).not.toThrow();
     expect(() => invoiceSchema.parse(exampleInvoice)).not.toThrow();
+  });
+
+  it('validates invoice pdf rendering preferences', () => {
+    expect(() => invoicePdfRequestSchema.parse(exampleInvoicePdfRequest)).not.toThrow();
   });
 
   it('validates payment payloads', () => {
