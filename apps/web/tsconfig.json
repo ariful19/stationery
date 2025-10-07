@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
+    "allowJs": false,
+    "types": [
+      "vite/client"
+    ],
+    "baseUrl": "./src"
+  },
+  "include": [
+    "src/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "references": []
+}
