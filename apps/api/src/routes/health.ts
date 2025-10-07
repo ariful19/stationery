@@ -1,35 +1,45 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import { z } from 'zod';
-import { createGreeting } from '@stationery/shared';
+import { sql } from 'drizzle-orm';
+import { healthCheckSchema } from '@stationery/shared';
+import { ApiError } from '../errors.js';
 import { db, healthChecks } from '../db/client.js';
-
-const healthResponseSchema = z.object({
-  status: z.literal('ok'),
-  greeting: z.string(),
-  checks: z.array(
-    z.object({
-      id: z.number(),
-      note: z.string()
-    })
-  )
-});
+import { asyncHandler } from '../utils/async-handler.js';
 
 const router = Router();
 
-router.get('/', (_req: Request, res: Response) => {
-  const greeting = createGreeting('from the API');
+router.get(
+  '/',
+  asyncHandler((_req, res) => {
+    let dbHealthy = true;
 
-  db.insert(healthChecks).values({ note: greeting }).run();
-  const checks = db.select().from(healthChecks).all();
+    try {
+      db.select({ count: sql<number>`count(*)` }).from(healthChecks).get();
+    } catch (error) {
+      console.error('Health check database probe failed', error);
+      dbHealthy = false;
+    }
 
-  const payload = healthResponseSchema.parse({
-    status: 'ok' as const,
-    greeting,
-    checks
-  });
+    if (!dbHealthy) {
+      throw new ApiError(503, 'service_unavailable', 'Database probe failed', {
+        component: 'database'
+      });
+    }
 
-  res.json(payload);
-});
+    const payload = healthCheckSchema.parse({
+      status: 'ok' as const,
+      version: process.env.npm_package_version ?? '0.0.0',
+      timestamp: new Date().toISOString(),
+      uptimeSeconds: Math.round(process.uptime()),
+      checks: [
+        {
+          name: 'database',
+          status: 'pass' as const
+        }
+      ]
+    });
+
+    res.json(payload);
+  })
+);
 
 export { router as healthRouter };

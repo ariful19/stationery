@@ -1,3 +1,7 @@
-export function createGreeting(name: string): string {
-  return `Hello, ${name}!`;
-}
+export * from './common.js';
+export * from './customers.js';
+export * from './products.js';
+export * from './invoices.js';
+export * from './payments.js';
+export * from './reports.js';
+export * from './health.js';
