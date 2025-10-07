@@ -27,6 +27,11 @@ describe('roundValue', () => {
   it.each(roundingCases)('%s', (_, value, config, expected) => {
     expect(roundValue(value, config)).toBe(expected);
   });
+
+  it('returns infinities unmodified to avoid NaN propagation', () => {
+    expect(roundValue(Number.POSITIVE_INFINITY, { decimals: 2 })).toBe(Number.POSITIVE_INFINITY);
+    expect(roundValue(Number.NEGATIVE_INFINITY, { decimals: 3 })).toBe(Number.NEGATIVE_INFINITY);
+  });
 });
 
 describe('buildInvoiceNumber', () => {
@@ -50,6 +55,11 @@ describe('buildInvoiceNumber', () => {
   it('exposes the series key used for querying existing invoices', () => {
     const date = new Date('2023-07-01T00:00:00Z');
     expect(resolveInvoiceSeriesKey(date, { prefix: 'BILL' })).toBe('BILL-202307');
+  });
+
+  it('throws when an invalid sequence is provided', () => {
+    expect(() => buildInvoiceNumber(-1)).toThrow('sequence must be a non-negative finite number');
+    expect(() => buildInvoiceNumber(Number.NaN)).toThrow('sequence must be a non-negative finite number');
   });
 });
 
@@ -123,6 +133,29 @@ describe('calculateInvoiceTotals', () => {
 
     expect(totals).toMatchSnapshot();
   });
+
+  it('throws when decimals are not set for cent precision', () => {
+    expect(() =>
+      calculateInvoiceTotals({ items: [{ quantity: 1, unitPriceCents: 100 }] }, { decimals: 2 })
+    ).toThrow('Invoice calculations expect rounding to operate on cent values (decimals=0)');
+  });
+
+  it('derives tax from the rate when cents are not provided', () => {
+    const totals = calculateInvoiceTotals(
+      {
+        items: [
+          { quantity: 2, unitPriceCents: 1500 },
+          { quantity: 1, unitPriceCents: 1000 }
+        ],
+        discountCents: 500,
+        taxRate: 0.1
+      },
+      rounding
+    );
+
+    expect(totals.taxCents).toBe(350);
+    expect(totals.grandTotalCents).toBe(3850);
+  });
 });
 
 describe('calculateCustomerDueCents', () => {
@@ -132,5 +165,11 @@ describe('calculateCustomerDueCents', () => {
 
   it('handles overpayments', () => {
     expect(calculateCustomerDueCents(5000, 7500, { decimals: 0 })).toBe(-2500);
+  });
+
+  it('throws when rounding precision is not set to cents', () => {
+    expect(() => calculateCustomerDueCents(1000, 0, { decimals: 2 })).toThrow(
+      'Customer due calculations expect cent precision (decimals=0)'
+    );
   });
 });

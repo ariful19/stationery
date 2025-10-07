@@ -87,9 +87,10 @@ export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOpti
   };
 
   const customerAddress = invoice.customer?.address
-    ? [invoice.customer.address, invoice.customer.city, invoice.customer.state, invoice.customer.postalCode]
-        .filter(Boolean)
-        .map(part => part!.trim())
+    ? invoice.customer.address
+        .split(/\r?\n/)
+        .map(part => part.trim())
+        .filter(part => part.length > 0)
     : [];
 
   const customerContact = [invoice.customer?.email, invoice.customer?.phone].filter(Boolean) as string[];

@@ -7,7 +7,7 @@
     "dev": "concurrently \"pnpm --filter @stationery/api dev\" \"pnpm --filter @stationery/web dev\"",
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
-    "e2e": "pnpm -r run e2e",
+    "e2e": "node ./scripts/prepare-playwright-report.mjs && pnpm -r --workspace-concurrency=1 run e2e",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format",
     "postinstall": "pnpm --filter @stationery/shared build",

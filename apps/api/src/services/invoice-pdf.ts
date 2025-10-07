@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import puppeteer, { Browser, LaunchOptions } from 'puppeteer';
+import puppeteer, { Browser, PuppeteerLaunchOptions } from 'puppeteer';
 import type { Invoice } from '@stationery/shared';
 import { renderInvoiceHtml, type InvoiceTemplateOptions, type InvoiceTemplateVariant } from '../templates/invoice/render.js';
 
@@ -20,19 +20,35 @@ const DEFAULT_PREVIEW_DIR = path.join(process.cwd(), 'tmp', 'previews');
 class PuppeteerInvoicePdfRenderer implements InvoicePdfRenderer {
   private browserPromise: Promise<Browser> | null = null;
 
-  constructor(private readonly launchOptions: LaunchOptions = {}) {}
+  constructor(private readonly launchOptions: PuppeteerLaunchOptions = {}) {}
 
   private async getBrowser() {
     if (!this.browserPromise) {
-      const headless = (process.env.PUPPETEER_HEADLESS as LaunchOptions['headless']) ?? 'new';
+      const headlessEnv = process.env.PUPPETEER_HEADLESS?.toLowerCase();
+      const headless: PuppeteerLaunchOptions['headless'] | undefined =
+        headlessEnv === 'true' || headlessEnv === '1' || headlessEnv === 'new'
+          ? true
+          : headlessEnv === 'false' || headlessEnv === '0'
+            ? false
+            : headlessEnv === 'shell'
+              ? 'shell'
+              : undefined;
       const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
 
       this.browserPromise = puppeteer
         .launch({
-          headless,
-          executablePath: executablePath && executablePath.length > 0 ? executablePath : undefined,
-          args: ['--no-sandbox', '--font-render-hinting=medium', '--disable-dev-shm-usage'],
-          ...this.launchOptions
+          ...this.launchOptions,
+          headless: headless ?? this.launchOptions.headless ?? true,
+          executablePath:
+            executablePath && executablePath.length > 0
+              ? executablePath
+              : this.launchOptions.executablePath,
+          args: [
+            '--no-sandbox',
+            '--font-render-hinting=medium',
+            '--disable-dev-shm-usage',
+            ...(this.launchOptions.args ?? [])
+          ]
         })
         .catch(error => {
           this.browserPromise = null;
@@ -113,7 +129,11 @@ class MockInvoicePdfRenderer implements InvoicePdfRenderer {
   }
 
   async preview(invoice: Invoice, options: InvoicePdfRenderOptions = {}) {
-    return this.renderToFile(invoice, path.join(DEFAULT_PREVIEW_DIR, 'mock.pdf'), options);
+    const previewRoot = process.env.PDF_PREVIEW_DIR ?? DEFAULT_PREVIEW_DIR;
+    const safeNumber = invoice.invoiceNo.replace(/[^\w-]+/g, '_');
+    const fileName = `${safeNumber || 'invoice'}-${Date.now()}.pdf`;
+    const previewPath = path.join(previewRoot, fileName);
+    return this.renderToFile(invoice, previewPath, options);
   }
 
   async close() {
