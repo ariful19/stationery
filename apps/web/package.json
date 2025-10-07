@@ -15,7 +15,10 @@
   },
   "dependencies": {
     "lit": "3.1.2",
-    "@stationery/shared": "workspace:*"
+    "@stationery/shared": "workspace:*",
+    "@lit-labs/router": "0.1.4",
+    "chart.js": "4.4.3",
+    "motion": "12.23.22"
   },
   "devDependencies": {
     "@playwright/test": "^1.43.1",
