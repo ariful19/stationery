@@ -26,7 +26,7 @@ export const navigationRoutes: NavigationRoute[] = [
     description: 'Overview of dues, invoices, and activity',
     includeInSidebar: true,
     exact: true,
-    render: () => html`<dashboard-page></dashboard-page>`
+    render: () => html`<dashboard-page></dashboard-page>`,
   },
   {
     path: '/customers',
@@ -34,7 +34,7 @@ export const navigationRoutes: NavigationRoute[] = [
     icon: '👥',
     description: 'Manage customers and quick actions',
     includeInSidebar: true,
-    render: () => html`<customers-page></customers-page>`
+    render: () => html`<customers-page></customers-page>`,
   },
   {
     path: '/products',
@@ -42,7 +42,7 @@ export const navigationRoutes: NavigationRoute[] = [
     icon: '📦',
     description: 'Browse and edit your catalog',
     includeInSidebar: true,
-    render: () => html`<products-page></products-page>`
+    render: () => html`<products-page></products-page>`,
   },
   {
     path: '/invoices/new',
@@ -50,7 +50,10 @@ export const navigationRoutes: NavigationRoute[] = [
     icon: '🧾',
     description: 'Create and send invoices',
     includeInSidebar: true,
-    render: url => html`<invoice-editor-page .prefillCustomerId=${Number(url.searchParams.get('customerId') ?? '')}></invoice-editor-page>`
+    render: (url) =>
+      html`<invoice-editor-page
+        .prefillCustomerId=${Number(url.searchParams.get('customerId') ?? '')}
+      ></invoice-editor-page>`,
   },
   {
     path: '/payments',
@@ -58,12 +61,12 @@ export const navigationRoutes: NavigationRoute[] = [
     icon: '💸',
     description: 'Record payments and update dues',
     includeInSidebar: true,
-    render: url => {
+    render: (url) => {
       const customerParam = url.searchParams.get('customer');
       const parsed = customerParam ? Number(customerParam) : undefined;
       const customerId = parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined;
       return html`<payments-page .customer=${customerId}></payments-page>`;
-    }
+    },
   },
   {
     path: '/reports',
@@ -71,7 +74,7 @@ export const navigationRoutes: NavigationRoute[] = [
     icon: '📈',
     description: 'Dig into sales and dues trends',
     includeInSidebar: true,
-    render: () => html`<reports-page></reports-page>`
+    render: () => html`<reports-page></reports-page>`,
   },
   {
     path: '*',
@@ -80,15 +83,23 @@ export const navigationRoutes: NavigationRoute[] = [
     description: 'The requested page could not be found',
     includeInSidebar: false,
     match: () => true,
-    render: () => html`<section class="empty-state"><h2>Page not found</h2><p>Use the navigation to pick a section.</p></section>`
-  }
+    render: () =>
+      html`<section class="empty-state">
+        <h2>Page not found</h2>
+        <p>Use the navigation to pick a section.</p>
+      </section>`,
+  },
 ];
 
 const resolveRoute = (path: string) => {
   const url = new URL(path, window.location.origin);
   return (
-    navigationRoutes.find(route =>
-      route.match ? route.match(url) : route.exact ? url.pathname === route.path : url.pathname.startsWith(route.path)
+    navigationRoutes.find((route) =>
+      route.match
+        ? route.match(url)
+        : route.exact
+          ? url.pathname === route.path
+          : url.pathname.startsWith(route.path),
     ) ?? navigationRoutes[navigationRoutes.length - 1]
   );
 };

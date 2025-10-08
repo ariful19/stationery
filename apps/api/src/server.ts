@@ -1,8 +1,9 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
-import { apiRouter } from './routes/index.js';
-import { errorHandler, notFoundHandler } from './middleware/error.js';
+
 import { createOpenApiDocument } from './docs/openapi.js';
+import { errorHandler, notFoundHandler } from './middleware/error.js';
+import { apiRouter } from './routes/index.js';
 
 export function createServer() {
   const app = express();

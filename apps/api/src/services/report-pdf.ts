@@ -1,13 +1,10 @@
+import { type DuesReport, type PaymentsLedger, type SalesReport } from '@stationery/shared';
 import puppeteer, { Browser, PuppeteerLaunchOptions } from 'puppeteer';
-import {
-  type DuesReport,
-  type PaymentsLedger,
-  type SalesReport
-} from '@stationery/shared';
+
 import {
   renderDuesReportHtml,
   renderPaymentsLedgerHtml,
-  renderSalesReportHtml
+  renderSalesReportHtml,
 } from '../templates/reports/render.js';
 
 interface ReportPdfRenderer {
@@ -45,10 +42,10 @@ class PuppeteerReportPdfRenderer implements ReportPdfRenderer {
             '--no-sandbox',
             '--font-render-hinting=medium',
             '--disable-dev-shm-usage',
-            ...(this.launchOptions.args ?? [])
-          ]
+            ...(this.launchOptions.args ?? []),
+          ],
         })
-        .catch(error => {
+        .catch((error) => {
           this.browserPromise = null;
           throw error;
         });
@@ -68,7 +65,7 @@ class PuppeteerReportPdfRenderer implements ReportPdfRenderer {
         format: 'A4',
         printBackground: true,
         preferCSSPageSize: true,
-        margin: { top: '18mm', bottom: '20mm', left: '18mm', right: '18mm' }
+        margin: { top: '18mm', bottom: '20mm', left: '18mm', right: '18mm' },
       });
 
       return Buffer.from(pdfBuffer);

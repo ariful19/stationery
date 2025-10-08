@@ -1,27 +1,23 @@
 import { describe, expect, it } from 'vitest';
+
 import {
   buildInvoiceNumber,
   calculateCustomerDueCents,
   calculateInvoiceTotals,
+  type InvoiceLineInput,
   resolveInvoiceSeriesKey,
   roundValue,
-  type InvoiceLineInput
 } from './billing.js';
 
 describe('roundValue', () => {
-  const roundingCases: Array<[
-    string,
-    number,
-    Parameters<typeof roundValue>[1],
-    number
-  ]> = [
+  const roundingCases: Array<[string, number, Parameters<typeof roundValue>[1], number]> = [
     ['half-even positive', 1.235, { decimals: 2, mode: 'HALF_EVEN' }, 1.24],
     ['half-even negative', -1.235, { decimals: 2, mode: 'HALF_EVEN' }, -1.24],
     ['half-up exact half', 1.235, { decimals: 2, mode: 'HALF_UP' }, 1.24],
     ['half-down exact half', 1.235, { decimals: 2, mode: 'HALF_DOWN' }, 1.23],
     ['truncate', 1.239, { decimals: 2, mode: 'TRUNCATE' }, 1.23],
     ['ceil negative', -1.231, { decimals: 2, mode: 'CEIL' }, -1.23],
-    ['floor positive', 1.239, { decimals: 2, mode: 'FLOOR' }, 1.23]
+    ['floor positive', 1.239, { decimals: 2, mode: 'FLOOR' }, 1.23],
   ];
 
   it.each(roundingCases)('%s', (_, value, config, expected) => {
@@ -45,8 +41,8 @@ describe('buildInvoiceNumber', () => {
     const invoice = buildInvoiceNumber(82, date, {
       prefix: 'STA',
       sequencePadding: 6,
-      dateFormatter: value =>
-        `${value.getUTCFullYear()}-${String(value.getUTCDate()).padStart(2, '0')}`
+      dateFormatter: (value) =>
+        `${value.getUTCFullYear()}-${String(value.getUTCDate()).padStart(2, '0')}`,
     });
 
     expect(invoice).toBe('STA-2025-05-000082');
@@ -59,7 +55,9 @@ describe('buildInvoiceNumber', () => {
 
   it('throws when an invalid sequence is provided', () => {
     expect(() => buildInvoiceNumber(-1)).toThrow('sequence must be a non-negative finite number');
-    expect(() => buildInvoiceNumber(Number.NaN)).toThrow('sequence must be a non-negative finite number');
+    expect(() => buildInvoiceNumber(Number.NaN)).toThrow(
+      'sequence must be a non-negative finite number',
+    );
   });
 });
 
@@ -69,13 +67,10 @@ describe('calculateInvoiceTotals', () => {
   it('handles zero and negative quantities gracefully', () => {
     const items: InvoiceLineInput[] = [
       { quantity: 0, unitPriceCents: 4000 },
-      { quantity: -1.5, unitPriceCents: 2500 }
+      { quantity: -1.5, unitPriceCents: 2500 },
     ];
 
-    const totals = calculateInvoiceTotals(
-      { items, discountCents: 500, taxRate: 0.1 },
-      rounding
-    );
+    const totals = calculateInvoiceTotals({ items, discountCents: 500, taxRate: 0.1 }, rounding);
 
     expect(totals).toMatchInlineSnapshot(`
       {
@@ -104,13 +99,13 @@ describe('calculateInvoiceTotals', () => {
       {
         items: [
           { quantity: 2, unitPriceCents: 999 },
-          { quantity: 1.234, unitPriceCents: 1999 }
+          { quantity: 1.234, unitPriceCents: 1999 },
         ],
         discountCents: 300,
         taxRate: 0.2,
-        taxCents: 145
+        taxCents: 145,
       },
-      rounding
+      rounding,
     );
 
     expect(totals.taxCents).toBe(145);
@@ -119,16 +114,16 @@ describe('calculateInvoiceTotals', () => {
   it('computes large totals with deterministic rounding', () => {
     const items = Array.from({ length: 100 }, (_, index) => ({
       quantity: 3.1415 + index,
-      unitPriceCents: 1299 + index
+      unitPriceCents: 1299 + index,
     }));
 
     const totals = calculateInvoiceTotals(
       {
         items,
         discountCents: 250_000,
-        taxRate: 0.175
+        taxRate: 0.175,
       },
-      rounding
+      rounding,
     );
 
     expect(totals).toMatchSnapshot();
@@ -136,7 +131,7 @@ describe('calculateInvoiceTotals', () => {
 
   it('throws when decimals are not set for cent precision', () => {
     expect(() =>
-      calculateInvoiceTotals({ items: [{ quantity: 1, unitPriceCents: 100 }] }, { decimals: 2 })
+      calculateInvoiceTotals({ items: [{ quantity: 1, unitPriceCents: 100 }] }, { decimals: 2 }),
     ).toThrow('Invoice calculations expect rounding to operate on cent values (decimals=0)');
   });
 
@@ -145,12 +140,12 @@ describe('calculateInvoiceTotals', () => {
       {
         items: [
           { quantity: 2, unitPriceCents: 1500 },
-          { quantity: 1, unitPriceCents: 1000 }
+          { quantity: 1, unitPriceCents: 1000 },
         ],
         discountCents: 500,
-        taxRate: 0.1
+        taxRate: 0.1,
       },
-      rounding
+      rounding,
     );
 
     expect(totals.taxCents).toBe(350);
@@ -169,7 +164,7 @@ describe('calculateCustomerDueCents', () => {
 
   it('throws when rounding precision is not set to cents', () => {
     expect(() => calculateCustomerDueCents(1000, 0, { decimals: 2 })).toThrow(
-      'Customer due calculations expect cent precision (decimals=0)'
+      'Customer due calculations expect cent precision (decimals=0)',
     );
   });
 });

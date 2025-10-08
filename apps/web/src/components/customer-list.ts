@@ -125,8 +125,10 @@ export class CustomerList extends LitElement {
   get filteredCustomers() {
     const term = this.query.trim().toLowerCase();
     if (!term) return this.customers;
-    return this.customers.filter(customer =>
-      `${customer.name} ${customer.email ?? ''} ${customer.phone ?? ''}`.toLowerCase().includes(term)
+    return this.customers.filter((customer) =>
+      `${customer.name} ${customer.email ?? ''} ${customer.phone ?? ''}`
+        .toLowerCase()
+        .includes(term),
     );
   }
 
@@ -142,8 +144,8 @@ export class CustomerList extends LitElement {
       new CustomEvent('customer-selected', {
         detail: { customer },
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   }
 
@@ -185,7 +187,7 @@ export class CustomerList extends LitElement {
 
   protected updated(changed: Map<string, unknown>): void {
     if (changed.has('customers') || changed.has('selectedId')) {
-      const index = this.filteredCustomers.findIndex(customer => customer.id === this.selectedId);
+      const index = this.filteredCustomers.findIndex((customer) => customer.id === this.selectedId);
       this.activeIndex = index >= 0 ? index : 0;
     }
   }

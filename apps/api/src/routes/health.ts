@@ -1,8 +1,9 @@
-import { Router } from 'express';
-import { sql } from 'drizzle-orm';
 import { healthCheckSchema } from '@stationery/shared';
-import { ApiError } from '../errors.js';
+import { sql } from 'drizzle-orm';
+import { Router } from 'express';
+
 import { db, healthChecks } from '../db/client.js';
+import { ApiError } from '../errors.js';
 import { asyncHandler } from '../utils/async-handler.js';
 
 const router = Router();
@@ -13,7 +14,9 @@ router.get(
     let dbHealthy = true;
 
     try {
-      db.select({ count: sql<number>`count(*)` }).from(healthChecks).get();
+      db.select({ count: sql<number>`count(*)` })
+        .from(healthChecks)
+        .get();
     } catch (error) {
       console.error('Health check database probe failed', error);
       dbHealthy = false;
@@ -21,7 +24,7 @@ router.get(
 
     if (!dbHealthy) {
       throw new ApiError(503, 'service_unavailable', 'Database probe failed', {
-        component: 'database'
+        component: 'database',
       });
     }
 
@@ -33,13 +36,13 @@ router.get(
       checks: [
         {
           name: 'database',
-          status: 'pass' as const
-        }
-      ]
+          status: 'pass' as const,
+        },
+      ],
     });
 
     res.json(payload);
-  })
+  }),
 );
 
 export { router as healthRouter };

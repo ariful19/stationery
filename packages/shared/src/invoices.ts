@@ -1,11 +1,12 @@
 import { z } from 'zod';
+
 import {
   dateOnlyStringSchema,
   dateTimeStringSchema,
   idSchema,
   listQuerySchema,
   moneyCentsSchema,
-  paginationSchema
+  paginationSchema,
 } from './common.js';
 import { customerSchema, exampleCustomer } from './customers.js';
 import { examplePayment, paymentSchema } from './payments.js';
@@ -17,14 +18,14 @@ export const invoiceItemInputSchema = z.object({
   productId: idSchema,
   description: z.string().trim().max(240).optional(),
   quantity: z.number().int().min(1),
-  unitPriceCents: moneyCentsSchema
+  unitPriceCents: moneyCentsSchema,
 });
 
 export const invoiceItemSchema = invoiceItemInputSchema.extend({
   id: idSchema,
   invoiceId: idSchema,
   lineTotalCents: moneyCentsSchema,
-  description: z.string().trim().max(240).nullable().optional()
+  description: z.string().trim().max(240).nullable().optional(),
 });
 
 export const invoiceBaseSchema = z.object({
@@ -37,13 +38,13 @@ export const invoiceBaseSchema = z.object({
   taxCents: moneyCentsSchema,
   grandTotalCents: moneyCentsSchema,
   status: invoiceStatusSchema,
-  notes: z.string().trim().max(500).nullable().optional()
+  notes: z.string().trim().max(500).nullable().optional(),
 });
 
 export const invoiceSchema = invoiceBaseSchema.extend({
   customer: customerSchema.optional(),
   items: z.array(invoiceItemSchema),
-  payments: z.array(paymentSchema)
+  payments: z.array(paymentSchema),
 });
 
 export const invoiceCreateSchema = z
@@ -55,7 +56,7 @@ export const invoiceCreateSchema = z
     discountCents: moneyCentsSchema.default(0),
     taxCents: moneyCentsSchema.default(0),
     notes: z.string().trim().max(500).optional(),
-    items: z.array(invoiceItemInputSchema).min(1)
+    items: z.array(invoiceItemInputSchema).min(1),
   })
   .strict();
 
@@ -65,12 +66,12 @@ export const invoiceListQuerySchema = listQuerySchema.extend({
   from: dateOnlyStringSchema.optional(),
   to: dateOnlyStringSchema.optional(),
   sort: z.enum(['issueDate', 'invoiceNo']).default('issueDate'),
-  direction: z.enum(['asc', 'desc']).default('desc')
+  direction: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export const invoiceListResponseSchema = z.object({
   data: z.array(invoiceSchema),
-  pagination: paginationSchema
+  pagination: paginationSchema,
 });
 
 export type InvoiceItemInput = z.infer<typeof invoiceItemInputSchema>;
@@ -84,14 +85,14 @@ const brandAssetSchema = z
   .string()
   .trim()
   .max(200_000)
-  .refine(value => /^(data:image\/(png|jpeg|jpg|gif|webp);base64,|https?:)/i.test(value), {
-    message: 'Brand assets must be a data URL or http(s) URL'
+  .refine((value) => /^(data:image\/(png|jpeg|jpg|gif|webp);base64,|https?:)/i.test(value), {
+    message: 'Brand assets must be a data URL or http(s) URL',
   });
 
 const brandingLineSchema = z.string().trim().max(160);
 const brandingLinesSchema = z
   .union([brandingLineSchema, z.array(brandingLineSchema).max(6)])
-  .transform(value => (typeof value === 'string' ? [value] : value));
+  .transform((value) => (typeof value === 'string' ? [value] : value));
 
 export const invoiceBrandingSchema = z
   .object({
@@ -107,7 +108,7 @@ export const invoiceBrandingSchema = z
     watermarkDataUrl: brandAssetSchema.optional(),
     watermarkText: z.string().trim().max(120).optional(),
     watermarkOpacity: z.number().min(0).max(1).optional(),
-    footerLines: z.array(z.string().trim().max(160)).max(6).optional()
+    footerLines: z.array(z.string().trim().max(160)).max(6).optional(),
   })
   .strict();
 
@@ -120,10 +121,10 @@ export const invoicePdfRequestSchema = z
       .trim()
       .length(3)
       .default('USD')
-      .transform(value => value.toUpperCase()),
+      .transform((value) => value.toUpperCase()),
     timezone: z.string().trim().max(60).optional(),
     direction: z.enum(['ltr', 'rtl']).default('ltr'),
-    brand: invoiceBrandingSchema.optional()
+    brand: invoiceBrandingSchema.optional(),
   })
   .strict();
 
@@ -142,9 +143,9 @@ export const exampleInvoiceCreate: InvoiceCreateInput = {
       productId: exampleProduct.id,
       quantity: 2,
       unitPriceCents: exampleProduct.unitPriceCents,
-      description: exampleProduct.description
-    }
-  ]
+      description: exampleProduct.description,
+    },
+  ],
 };
 
 export const exampleInvoice: Invoice = {
@@ -156,7 +157,9 @@ export const exampleInvoice: Invoice = {
   discountCents: exampleInvoiceCreate.discountCents,
   taxCents: exampleInvoiceCreate.taxCents,
   grandTotalCents:
-    exampleProduct.unitPriceCents * 2 - exampleInvoiceCreate.discountCents + exampleInvoiceCreate.taxCents,
+    exampleProduct.unitPriceCents * 2 -
+    exampleInvoiceCreate.discountCents +
+    exampleInvoiceCreate.taxCents,
   status: exampleInvoiceCreate.status,
   notes: exampleInvoiceCreate.notes,
   customer: exampleCustomer,
@@ -168,10 +171,10 @@ export const exampleInvoice: Invoice = {
       quantity: 2,
       unitPriceCents: exampleProduct.unitPriceCents,
       lineTotalCents: exampleProduct.unitPriceCents * 2,
-      description: exampleProduct.description
-    }
+      description: exampleProduct.description,
+    },
   ],
-  payments: [examplePayment]
+  payments: [examplePayment],
 };
 
 export const exampleInvoicePdfRequest: InvoicePdfRequest = {
@@ -184,6 +187,6 @@ export const exampleInvoicePdfRequest: InvoicePdfRequest = {
     companyAddress: ['123 Paper Street', 'Austin, TX 78701'],
     companyContact: ['billing@stationery.test', '+1 (512) 555-0199'],
     accentColor: '#2563EB',
-    footerLines: ['Thank you for your business!', 'Payment is due within 30 days.']
-  }
+    footerLines: ['Thank you for your business!', 'Payment is due within 30 days.'],
+  },
 };

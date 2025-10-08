@@ -59,6 +59,9 @@ importers:
       '@asteasolutions/zod-to-openapi':
         specifier: 7.1.0
         version: 7.1.0(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: ^8.4.1
+        version: 8.4.1
       '@stationery/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -1156,6 +1159,10 @@ packages:
 
   '@esm-bundle/chai@4.3.4-fix.0':
     resolution: {integrity: sha512-26SKdM4uvDWlY8/OOOxSB1AqQWeBosCX3wRYUZO7enTAj03CtVxIiCimYVG2WpULcyV51qapK4qTovwkUr5Mlw==}
+
+  '@faker-js/faker@8.4.1':
+    resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
+    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
 
   '@hapi/bourne@3.0.0':
     resolution: {integrity: sha512-Waj1cwPXJDucOib4a3bAISsKJVb15MKi9IvmTI/7ssVEm6sywXGjVJDhl6/umt1pK1ZS7PacXU3A1PmFKHEZ2w==}
@@ -5314,6 +5321,8 @@ snapshots:
   '@esm-bundle/chai@4.3.4-fix.0':
     dependencies:
       '@types/chai': 4.3.20
+
+  '@faker-js/faker@8.4.1': {}
 
   '@hapi/bourne@3.0.0': {}
 

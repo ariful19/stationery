@@ -1,4 +1,8 @@
-import { OpenAPIRegistry, OpenApiGeneratorV31, extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import {
+  extendZodWithOpenApi,
+  OpenApiGeneratorV31,
+  OpenAPIRegistry,
+} from '@asteasolutions/zod-to-openapi';
 import {
   customerCreateSchema,
   customerLedgerSchema,
@@ -25,20 +29,20 @@ import {
   invoiceCreateSchema,
   invoiceListQuerySchema,
   invoiceListResponseSchema,
-  invoiceSchema,
   invoicePdfRequestSchema,
+  invoiceSchema,
   paymentCreateSchema,
   paymentListQuerySchema,
   paymentListResponseSchema,
   paymentSchema,
+  paymentsLedgerQuerySchema,
+  paymentsLedgerSchema,
   productCreateSchema,
   productListQuerySchema,
   productListResponseSchema,
   productSchema,
-  paymentsLedgerQuerySchema,
-  paymentsLedgerSchema,
   salesReportQuerySchema,
-  salesReportSchema
+  salesReportSchema,
 } from '@stationery/shared';
 import { z } from 'zod';
 
@@ -47,7 +51,7 @@ extendZodWithOpenApi(z);
 const errorSchema = z.object({
   code: z.string(),
   message: z.string(),
-  details: z.any().optional()
+  details: z.any().optional(),
 });
 
 const registry = new OpenAPIRegistry();
@@ -82,11 +86,11 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: healthCheckSchema,
-          example: healthCheckExample
-        }
-      }
-    }
-  }
+          example: healthCheckExample,
+        },
+      },
+    },
+  },
 });
 
 registry.registerPath({
@@ -94,7 +98,7 @@ registry.registerPath({
   path: '/api/v1/customers',
   description: 'List customers with optional search',
   request: {
-    query: customerListQuerySchema
+    query: customerListQuerySchema,
   },
   responses: {
     200: {
@@ -104,12 +108,12 @@ registry.registerPath({
           schema: customerListResponseSchema,
           example: {
             data: [exampleCustomer],
-            pagination: { total: 1, limit: 20, offset: 0 }
-          }
-        }
-      }
-    }
-  }
+            pagination: { total: 1, limit: 20, offset: 0 },
+          },
+        },
+      },
+    },
+  },
 });
 
 registry.registerPath({
@@ -121,10 +125,10 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: customerCreateSchema,
-          example: exampleCustomerCreate
-        }
-      }
-    }
+          example: exampleCustomerCreate,
+        },
+      },
+    },
   },
   responses: {
     201: {
@@ -132,12 +136,15 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: customerSchema,
-          example: exampleCustomer
-        }
-      }
+          example: exampleCustomer,
+        },
+      },
     },
-    400: { description: 'Validation error', content: { 'application/json': { schema: errorSchema } } }
-  }
+    400: {
+      description: 'Validation error',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -145,15 +152,18 @@ registry.registerPath({
   path: '/api/v1/customers/{id}',
   description: 'Fetch a customer by id',
   request: {
-    params: z.object({ id: z.string() })
+    params: z.object({ id: z.string() }),
   },
   responses: {
     200: {
       description: 'Customer found',
-      content: { 'application/json': { schema: customerSchema, example: exampleCustomer } }
+      content: { 'application/json': { schema: customerSchema, example: exampleCustomer } },
     },
-    404: { description: 'Customer missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    404: {
+      description: 'Customer missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -166,18 +176,21 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: customerCreateSchema.partial(),
-          example: { phone: '+1 555 987 6543' }
-        }
-      }
-    }
+          example: { phone: '+1 555 987 6543' },
+        },
+      },
+    },
   },
   responses: {
     200: {
       description: 'Updated customer',
-      content: { 'application/json': { schema: customerSchema, example: exampleCustomer } }
+      content: { 'application/json': { schema: customerSchema, example: exampleCustomer } },
     },
-    404: { description: 'Customer missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    404: {
+      description: 'Customer missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -185,12 +198,15 @@ registry.registerPath({
   path: '/api/v1/customers/{id}',
   description: 'Delete a customer',
   request: {
-    params: z.object({ id: z.string() })
+    params: z.object({ id: z.string() }),
   },
   responses: {
     204: { description: 'Deleted' },
-    404: { description: 'Customer missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    404: {
+      description: 'Customer missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -198,14 +214,16 @@ registry.registerPath({
   path: '/api/v1/customers/{id}/ledger',
   description: 'Customer ledger summary',
   request: {
-    params: z.object({ id: z.string() })
+    params: z.object({ id: z.string() }),
   },
   responses: {
     200: {
       description: 'Ledger summary',
-      content: { 'application/json': { schema: customerLedgerSchema, example: exampleCustomerLedger } }
-    }
-  }
+      content: {
+        'application/json': { schema: customerLedgerSchema, example: exampleCustomerLedger },
+      },
+    },
+  },
 });
 
 registry.registerPath({
@@ -219,11 +237,11 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: productListResponseSchema,
-          example: { data: [exampleProduct], pagination: { total: 1, limit: 20, offset: 0 } }
-        }
-      }
-    }
-  }
+          example: { data: [exampleProduct], pagination: { total: 1, limit: 20, offset: 0 } },
+        },
+      },
+    },
+  },
 });
 
 registry.registerPath({
@@ -235,17 +253,17 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: productCreateSchema,
-          example: exampleProductCreate
-        }
-      }
-    }
+          example: exampleProductCreate,
+        },
+      },
+    },
   },
   responses: {
     201: {
       description: 'Created product',
-      content: { 'application/json': { schema: productSchema, example: exampleProduct } }
-    }
-  }
+      content: { 'application/json': { schema: productSchema, example: exampleProduct } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -256,10 +274,13 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Product info',
-      content: { 'application/json': { schema: productSchema, example: exampleProduct } }
+      content: { 'application/json': { schema: productSchema, example: exampleProduct } },
     },
-    404: { description: 'Product missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    404: {
+      description: 'Product missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -268,14 +289,18 @@ registry.registerPath({
   description: 'Update product',
   request: {
     params: z.object({ id: z.string() }),
-    body: { content: { 'application/json': { schema: productCreateSchema.partial(), example: { stockQty: 150 } } } }
+    body: {
+      content: {
+        'application/json': { schema: productCreateSchema.partial(), example: { stockQty: 150 } },
+      },
+    },
   },
   responses: {
     200: {
       description: 'Updated product',
-      content: { 'application/json': { schema: productSchema, example: exampleProduct } }
-    }
-  }
+      content: { 'application/json': { schema: productSchema, example: exampleProduct } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -284,8 +309,8 @@ registry.registerPath({
   description: 'Delete product',
   request: { params: z.object({ id: z.string() }) },
   responses: {
-    204: { description: 'Deleted' }
-  }
+    204: { description: 'Deleted' },
+  },
 });
 
 registry.registerPath({
@@ -293,14 +318,18 @@ registry.registerPath({
   path: '/api/v1/invoices',
   description: 'Create invoice with items',
   request: {
-    body: { content: { 'application/json': { schema: invoiceCreateSchema, example: exampleInvoiceCreate } } }
+    body: {
+      content: {
+        'application/json': { schema: invoiceCreateSchema, example: exampleInvoiceCreate },
+      },
+    },
   },
   responses: {
     201: {
       description: 'Created invoice',
-      content: { 'application/json': { schema: invoiceSchema, example: exampleInvoice } }
-    }
-  }
+      content: { 'application/json': { schema: invoiceSchema, example: exampleInvoice } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -311,10 +340,13 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Invoice',
-      content: { 'application/json': { schema: invoiceSchema, example: exampleInvoice } }
+      content: { 'application/json': { schema: invoiceSchema, example: exampleInvoice } },
     },
-    404: { description: 'Invoice missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    404: {
+      description: 'Invoice missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -327,23 +359,29 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: invoicePdfRequestSchema,
-          example: exampleInvoicePdfRequest
-        }
-      }
-    }
+          example: exampleInvoicePdfRequest,
+        },
+      },
+    },
   },
   responses: {
     200: {
       description: 'Invoice PDF ready to download',
       content: {
         'application/pdf': {
-          schema: z.string().openapi({ type: 'string', format: 'binary' })
-        }
-      }
+          schema: z.string().openapi({ type: 'string', format: 'binary' }),
+        },
+      },
     },
-    400: { description: 'Invalid request', content: { 'application/json': { schema: errorSchema } } },
-    404: { description: 'Invoice missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    400: {
+      description: 'Invalid request',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+    404: {
+      description: 'Invoice missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -357,11 +395,11 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: invoiceListResponseSchema,
-          example: { data: [exampleInvoice], pagination: { total: 1, limit: 20, offset: 0 } }
-        }
-      }
-    }
-  }
+          example: { data: [exampleInvoice], pagination: { total: 1, limit: 20, offset: 0 } },
+        },
+      },
+    },
+  },
 });
 
 registry.registerPath({
@@ -369,14 +407,18 @@ registry.registerPath({
   path: '/api/v1/payments',
   description: 'Record a payment',
   request: {
-    body: { content: { 'application/json': { schema: paymentCreateSchema, example: examplePaymentCreate } } }
+    body: {
+      content: {
+        'application/json': { schema: paymentCreateSchema, example: examplePaymentCreate },
+      },
+    },
   },
   responses: {
     201: {
       description: 'Payment recorded',
-      content: { 'application/json': { schema: paymentSchema, example: examplePayment } }
-    }
-  }
+      content: { 'application/json': { schema: paymentSchema, example: examplePayment } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -390,11 +432,11 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: paymentListResponseSchema,
-          example: { data: [examplePayment], pagination: { total: 1, limit: 20, offset: 0 } }
-        }
-      }
-    }
-  }
+          example: { data: [examplePayment], pagination: { total: 1, limit: 20, offset: 0 } },
+        },
+      },
+    },
+  },
 });
 
 registry.registerPath({
@@ -405,10 +447,13 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Payment',
-      content: { 'application/json': { schema: paymentSchema, example: examplePayment } }
+      content: { 'application/json': { schema: paymentSchema, example: examplePayment } },
     },
-    404: { description: 'Payment missing', content: { 'application/json': { schema: errorSchema } } }
-  }
+    404: {
+      description: 'Payment missing',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -419,9 +464,9 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Dues report',
-      content: { 'application/json': { schema: duesReportSchema, example: exampleDuesReport } }
-    }
-  }
+      content: { 'application/json': { schema: duesReportSchema, example: exampleDuesReport } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -432,9 +477,9 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Sales report',
-      content: { 'application/json': { schema: salesReportSchema, example: exampleSalesReport } }
-    }
-  }
+      content: { 'application/json': { schema: salesReportSchema, example: exampleSalesReport } },
+    },
+  },
 });
 
 registry.registerPath({
@@ -445,9 +490,11 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Payments ledger',
-      content: { 'application/json': { schema: paymentsLedgerSchema, example: examplePaymentsLedger } }
-    }
-  }
+      content: {
+        'application/json': { schema: paymentsLedgerSchema, example: examplePaymentsLedger },
+      },
+    },
+  },
 });
 
 const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -458,6 +505,6 @@ export const createOpenApiDocument = () =>
     info: {
       title: 'Stationery API',
       version: '1.0.0',
-      description: 'Stationery shop management API built with Express and SQLite'
-    }
+      description: 'Stationery shop management API built with Express and SQLite',
+    },
   });

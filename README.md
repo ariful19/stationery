@@ -1,110 +1,224 @@
-# Stationery Docker Guide
+# Stationery Monorepo
 
-This repository ships production-ready containers for the Stationery API and web client.
-The stack uses multi-stage builds, installs dependencies with `pnpm`, and runs the
-services as non-root users. A named Docker volume (`stationery_db_data`) holds the
-SQLite database so that write-ahead logging (WAL) files persist across restarts.
+A modern stationery invoicing demo built as a pnpm workspace. The repository hosts a
+TypeScript/Express API, a Vite/Lit web client, and shared libraries that power both
+experiences. This guide walks through local pnpm development, Docker workflows,
+environment configuration, automated tooling, and the assets/docs ecosystem so new
+contributors can get productive quickly.
 
-## Prerequisites
+## Table of contents
 
-- Docker 24+
-- Docker Compose v2 (invoked as `docker compose`)
+1. [Project layout](#project-layout)
+2. [Requirements](#requirements)
+3. [Local development with pnpm](#local-development-with-pnpm)
+4. [Database migrations & seed data](#database-migrations--seed-data)
+5. [Screenshots & GIFs](#screenshots--gifs)
+6. [Docker workflow](#docker-workflow)
+7. [API documentation](#api-documentation)
+8. [Environment variables](#environment-variables)
+9. [Testing & quality gates](#testing--quality-gates)
+10. [Optional git hooks](#optional-git-hooks)
+11. [Make targets](#make-targets)
+12. [Troubleshooting](#troubleshooting)
+13. [Developer guidelines](#developer-guidelines)
 
-## Building & Starting the stack
+## Project layout
+
+```
+apps/
+  api/           # Express API, Drizzle ORM, Swagger/OpenAPI docs
+  web/           # Vite + Lit front-end
+packages/
+  shared/        # Shared validation, invoice helpers, and typings
+scripts/         # Tooling helpers (pre-commit, Playwright reporting, etc.)
+docker/          # Production-ready Dockerfiles for api & web
+```
+
+## Requirements
+
+- Node.js 20+
+- [pnpm](https://pnpm.io/) 8+
+- SQLite 3.40+ (CLI is optional but handy for inspection)
+- Docker 24+ with Compose v2 (for the container workflow)
+
+## Local development with pnpm
+
+1. Copy the environment template and tailor values if needed:
+   ```bash
+   cp .env.example .env
+   ```
+2. Install dependencies and build shared packages:
+   ```bash
+   pnpm install
+   ```
+3. Start the full stack (API + web) with hot reloading:
+   ```bash
+   pnpm dev
+   ```
+   - API: http://localhost:8080 (health check at `/api/v1/health`)
+   - Web: http://localhost:5173 (proxying API requests to port 8080)
+4. To work on a single surface:
+   ```bash
+   pnpm --filter @stationery/api dev     # API only
+   pnpm --filter @stationery/web dev     # Web client only
+   ```
+5. Stop the processes with `Ctrl+C` once you are done hacking.
+
+## Database migrations & seed data
+
+- Apply schema changes and ensure the ledger view exists:
+  ```bash
+  pnpm db:push
+  ```
+- Load the curated demo dataset:
+  ```bash
+  pnpm seed
+  ```
+- Generate random fixtures with Faker (pass counts via env vars):
+  ```bash
+  SEED_CUSTOMERS=25 SEED_INVOICES=40 pnpm seed:faker
+  ```
+  The faker script accepts the following optional knobs: `SEED_RESET` (`true` to
+  wipe tables before inserting), `SEED_CUSTOMERS`, `SEED_PRODUCTS`, `SEED_INVOICES`,
+  and `SEED_FAKER_SEED` for deterministic runs.
+
+The SQLite database lives at `./stationery.sqlite` by default. Adjust `DATABASE_URL`
+or `DB_PATH` in `.env` to relocate it.
+
+## Screenshots & GIFs
+
+Visual assets live in `docs/media/` and are referenced from documentation. Capture
+new UI states with the running Vite server (`pnpm --filter @stationery/web dev`) and
+store them as PNG or GIF files following the `feature-name_description.png` naming
+pattern. Update this README (or feature-specific docs) with Markdown image links when
+adding new assets.
+
+## Docker workflow
+
+Build and boot the production-like containers:
 
 ```bash
 docker compose build
 docker compose up -d
 ```
 
-The compose file builds the API (`docker/api.Dockerfile`) and web (`docker/web.Dockerfile`)
-images and starts them with the following external ports:
-
 - API available at http://localhost:8080
-- Web client served from http://localhost:8081 (aliased to http://localhost:5173 for convenience)
+- Web client served from http://localhost:8081 (rewrites `/api` to the API container)
 
-The API honours the `DB_PATH` environment variable (mirrored to `DATABASE_URL` in the
-compose file) so you can change the SQLite location by updating a single value.
-
-You can inspect container health once the services are running:
+Health check the services once Compose finishes:
 
 ```bash
 docker compose ps --status running
+docker compose logs -f api
 ```
 
-Both containers expose HTTP health checks so the command above should report
-`healthy` for the `api` and `web` services once startup completes.
-
-## Verifying the API
-
-1. Query the API root to confirm it is responding:
-   ```bash
-   curl http://localhost:8080/
-   ```
-2. Check the detailed health endpoint (used by Docker health checks):
-   ```bash
-   curl http://localhost:8080/api/v1/health | jq
-   ```
-
-### PDF generation test
-
-The API bundles Puppeteer so it can render PDF reports on demand. To verify this,
-request a sample report and ensure that the response is a valid PDF:
-
-```bash
-curl -o sales-report.pdf http://localhost:8080/api/v1/reports/sales.pdf
-file sales-report.pdf
-```
-
-The second command should report `PDF document`. You can open the file locally to
-review the rendered report.
-
-## Verifying the web client
-
-After the containers finish booting, open http://localhost:8081 in a browser to
-load the precompiled Vite application. The SPA falls back to `index.html`, so
-client-side routing will work even on refresh.
-
-## Persistence & WAL verification
-
-The API stores data in `/app/data/stationery.sqlite` with SQLite's WAL mode
-enabled. The compose file mounts this path to the named `stationery_db_data`
-volume. Follow these steps to confirm that data outlives container restarts:
-
-1. Create a new customer record:
-   ```bash
-   curl -X POST http://localhost:8080/api/v1/customers \
-     -H 'Content-Type: application/json' \
-     -d '{
-       "name": "Docker Demo Co",
-       "email": "demo@example.com",
-       "phone": "555-9876",
-       "address": "1 Container Way"
-     }'
-   ```
-2. Restart the API container:
-   ```bash
-   docker compose restart api
-   ```
-3. Fetch customers and verify the new record still exists:
-   ```bash
-   curl 'http://localhost:8080/api/v1/customers?limit=10&offset=0' | jq '.data[] | select(.name=="Docker Demo Co")'
-   ```
-4. (Optional) Inspect the database directory to see the WAL files:
-   ```bash
-   docker compose exec api ls -l /app/data
-   ```
-
-Because the database lives in the shared volume, the newly created customer and
-associated WAL/SHM files remain available even after container restarts or image
-rebuilds.
-
-## Cleaning up
-
-To stop and remove the containers while preserving the database volume:
+Stop everything while preserving the named SQLite volume:
 
 ```bash
 docker compose down
 ```
+Add `--volumes` to prune the database files as well.
 
-To delete the persistent data as well, add the `--volumes` flag.
+## API documentation
+
+Swagger UI is mounted at [`/docs`](http://localhost:8080/docs) when the API is
+running. The raw OpenAPI definition is always available at:
+
+- JSON: [`http://localhost:8080/docs/openapi.json`](http://localhost:8080/docs/openapi.json)
+
+To browse the documentation without starting the entire stack, run the API in
+isolation (`pnpm --filter @stationery/api dev`) or point any Swagger UI instance to
+the JSON URL above.
+
+## Environment variables
+
+| Name | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `8080` | API HTTP port when running locally |
+| `DATABASE_URL` | `./stationery.sqlite` | SQLite path picked up by Drizzle & tests |
+| `DB_PATH` | _(empty)_ | Overrides `DATABASE_URL` when supplied |
+| `PLAYWRIGHT_DATABASE_URL` | `./tmp/playwright-api.sqlite` | Isolated DB for Playwright runs |
+| `PUPPETEER_HEADLESS` | `true` | Controls Chromium launch mode for PDF rendering |
+| `PUPPETEER_EXECUTABLE_PATH` | _(empty)_ | Explicit Chromium binary for containerized environments |
+| `PDF_PREVIEW_DIR` | `./tmp/previews` | Folder used for PDF preview exports |
+| `MOCK_INVOICE_PDF` / `MOCK_REPORT_PDF` | `false` | Return fixture buffers instead of launching Chromium |
+| `BILLING_ROUNDING_MODE` | `HALF_EVEN` | Controls invoice total rounding strategy |
+| `INVOICE_PREFIX` | `INV` | Prefix used when generating invoice numbers |
+| `INVOICE_SEQUENCE_PADDING` | _(unset)_ | Optional zero-padding for invoice sequence numbers |
+| `SEED_RESET` | `false` | Drop data before running faker seeds |
+| `SEED_CUSTOMERS` | `20` | Faker-generated customer count |
+| `SEED_PRODUCTS` | `15` | Faker-generated product count |
+| `SEED_INVOICES` | `35` | Faker-generated invoice count |
+| `SEED_FAKER_SEED` | _(unset)_ | Optional deterministic seed for Faker |
+
+Refer to `.env.example` for inline documentation and additional knobs that tailor
+Playwright/Puppeteer behaviour.
+
+## Testing & quality gates
+
+```bash
+pnpm test           # Vitest unit coverage across packages
+pnpm e2e            # Playwright suites (API + web)
+pnpm lint           # ESLint across the workspace
+pnpm format:check   # Prettier verification without writing files
+```
+
+Generate an HTML report for Playwright runs with `pnpm e2e` – results live under
+`apps/api/playwright-report/` or `apps/web/playwright-report/` depending on the
+package.
+
+## Optional git hooks
+
+An opt-in pre-commit hook can guard formatting and lint rules:
+
+```bash
+pnpm hooks:install
+```
+
+The hook runs `pnpm format:check` and `pnpm lint` before commits. Remove it at any
+time by deleting `.git/hooks/pre-commit`.
+
+## Make targets
+
+A convenience `Makefile` mirrors the commands above. View the catalogue with:
+
+```bash
+make help
+```
+
+Targets cover dependency installation, local dev servers, tests, linting, seeding,
+Docker lifecycle commands, and Swagger documentation helpers.
+
+## Troubleshooting
+
+### Puppeteer & Chromium dependencies
+
+- Linux containers require `libnss3`, `libatk-1.0-0`, `libatk-bridge2.0-0`,
+  `libx11-xcb1`, `libxcomposite1`, `libxdamage1`, `libxfixes3`, and `libxrandr2`.
+  Install them with `apt-get install -y` before launching the API in headless
+  environments.
+- Set `PUPPETEER_EXECUTABLE_PATH` when using a system Chromium/Chrome build instead
+  of the bundled binary (useful for Alpine images or minimal base images).
+- Toggle `PUPPETEER_HEADLESS=0` locally to debug PDF rendering in a visible browser.
+
+### File permissions
+
+- Ensure shell scripts are executable: `chmod +x scripts/setup-pre-commit.sh`.
+- On Windows + WSL2, run commands from WSL to avoid `EPERM` errors when SQLite opens
+  WAL files. If file locking persists, move the workspace into the WSL filesystem.
+- When Docker binds project files, use a user with matching UID/GID to prevent
+  `EACCES` errors on the generated SQLite database.
+
+### Codex Web quirks
+
+- Expose dev servers on all interfaces. The supplied Vite config already sets
+  `server.host = true`, but if you add additional tooling, pass `--host 0.0.0.0`.
+- Use forwarded ports 5173 (web) and 8080 (API) for live previews. Codex mirrors
+  these under the “Ports” panel.
+- Prefer `pnpm format:check` instead of write mode when autosave is enabled – it
+  avoids Codex Web reloading loops caused by mass file rewrites.
+
+## Developer guidelines
+
+See [`docs/development.md`](docs/development.md) for coding standards, testing
+expectations, and contribution workflows that expand on this README.

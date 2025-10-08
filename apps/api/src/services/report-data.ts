@@ -1,25 +1,20 @@
-import type { SQL } from 'drizzle-orm';
-import { and, desc, eq, sql } from 'drizzle-orm';
 import {
   customerLedgerSchema,
-  duesReportSchema,
+  type DuesReport,
   duesReportQuerySchema,
+  duesReportSchema,
+  type PaymentsLedger,
   paymentsLedgerEntrySchema,
   paymentsLedgerQuerySchema,
   paymentsLedgerSchema,
+  type SalesReport,
   salesReportQuerySchema,
   salesReportSchema,
-  type DuesReport,
-  type PaymentsLedger,
-  type SalesReport
 } from '@stationery/shared';
-import {
-  customerLedgerView,
-  customers,
-  db,
-  invoices,
-  payments
-} from '../db/client.js';
+import type { SQL } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
+
+import { customerLedgerView, customers, db, invoices, payments } from '../db/client.js';
 import { toIsoDateTime } from '../utils/datetime.js';
 
 function buildWhereClause(filters: SQL[]) {
@@ -49,12 +44,10 @@ export function getDuesReport(query: unknown = {}): DuesReport {
   const whereClause = buildWhereClause(filters);
 
   const baseSelection = db.select().from(customerLedgerView);
-  const filteredSelection = whereClause
-    ? baseSelection.where(whereClause)
-    : baseSelection;
+  const filteredSelection = whereClause ? baseSelection.where(whereClause) : baseSelection;
 
   const rows = filteredSelection.orderBy(desc(customerLedgerView.balanceCents)).all();
-  const customersData = rows.map(row => customerLedgerSchema.parse(row));
+  const customersData = rows.map((row) => customerLedgerSchema.parse(row));
 
   const summary = customersData.reduce(
     (acc, item) => {
@@ -63,7 +56,7 @@ export function getDuesReport(query: unknown = {}): DuesReport {
       acc.totalBalanceCents += item.balanceCents;
       return acc;
     },
-    { totalInvoicedCents: 0, totalPaidCents: 0, totalBalanceCents: 0 }
+    { totalInvoicedCents: 0, totalPaidCents: 0, totalBalanceCents: 0 },
   );
 
   const payload = {
@@ -71,8 +64,8 @@ export function getDuesReport(query: unknown = {}): DuesReport {
     customers: customersData,
     summary: {
       customersCount: customersData.length,
-      ...summary
-    }
+      ...summary,
+    },
   } satisfies DuesReport;
 
   return duesReportSchema.parse(payload);
@@ -99,22 +92,20 @@ export function getSalesReport(query: unknown = {}): SalesReport {
     .select({
       period: sql<string>`strftime(${strftimeFormat}, ${invoices.issueDate})`,
       invoicesCount: sql<number>`count(*)`,
-      totalCents: sql<number>`sum(${invoices.grandTotalCents})`
+      totalCents: sql<number>`sum(${invoices.grandTotalCents})`,
     })
     .from(invoices)
     .groupBy(sql`strftime(${strftimeFormat}, ${invoices.issueDate})`)
     .orderBy(sql`strftime(${strftimeFormat}, ${invoices.issueDate})`);
 
-  const filteredSelection = whereClause
-    ? baseSelection.where(whereClause)
-    : baseSelection;
+  const filteredSelection = whereClause ? baseSelection.where(whereClause) : baseSelection;
 
   const rows = filteredSelection.all();
 
-  const parsedRows = rows.map(row => ({
+  const parsedRows = rows.map((row) => ({
     period: row.period,
     invoicesCount: row.invoicesCount ?? 0,
-    totalCents: row.totalCents ?? 0
+    totalCents: row.totalCents ?? 0,
   }));
 
   const summary = parsedRows.reduce(
@@ -123,13 +114,13 @@ export function getSalesReport(query: unknown = {}): SalesReport {
       acc.totalCents += item.totalCents;
       return acc;
     },
-    { totalInvoicesCount: 0, totalCents: 0 }
+    { totalInvoicesCount: 0, totalCents: 0 },
   );
 
   const payload = {
     generatedAt: new Date().toISOString(),
     rows: parsedRows,
-    summary
+    summary,
   } satisfies SalesReport;
 
   return salesReportSchema.parse(payload);
@@ -138,7 +129,7 @@ export function getSalesReport(query: unknown = {}): SalesReport {
 const groupFormats = {
   day: '%Y-%m-%d',
   week: '%Y-%W',
-  month: '%Y-%m'
+  month: '%Y-%m',
 } as const;
 
 function inArrayIssuedStatuses(): SQL {
@@ -178,15 +169,13 @@ export function getPaymentsLedger(query: unknown = {}): PaymentsLedger {
       paidAt: payments.paidAt,
       note: payments.note,
       customerName: customers.name,
-      invoiceNo: invoices.invoiceNo
+      invoiceNo: invoices.invoiceNo,
     })
     .from(payments)
     .leftJoin(customers, eq(customers.id, payments.customerId))
     .leftJoin(invoices, eq(invoices.id, payments.invoiceId));
 
-  const filteredSelection = whereClause
-    ? baseSelection.where(whereClause)
-    : baseSelection;
+  const filteredSelection = whereClause ? baseSelection.where(whereClause) : baseSelection;
 
   const orderedSelection =
     parsed.direction === 'asc'
@@ -195,23 +184,25 @@ export function getPaymentsLedger(query: unknown = {}): PaymentsLedger {
 
   const rows = orderedSelection.all();
 
-  const chronological = [...rows].sort((a, b) => new Date(a.paidAt).getTime() - new Date(b.paidAt).getTime());
+  const chronological = [...rows].sort(
+    (a, b) => new Date(a.paidAt).getTime() - new Date(b.paidAt).getTime(),
+  );
   let runningTotal = 0;
   const runningMap = new Map<number, number>();
-  chronological.forEach(row => {
+  chronological.forEach((row) => {
     runningTotal += row.amountCents ?? 0;
     runningMap.set(row.id, runningTotal);
   });
 
-  const entries = rows.map(row =>
+  const entries = rows.map((row) =>
     paymentsLedgerEntrySchema.parse({
       ...row,
       customerName: row.customerName ?? 'Unknown customer',
       invoiceNo: row.invoiceNo ?? null,
       note: row.note ?? null,
       paidAt: toIsoDateTime(row.paidAt),
-      runningBalanceCents: runningMap.get(row.id) ?? row.amountCents ?? 0
-    })
+      runningBalanceCents: runningMap.get(row.id) ?? row.amountCents ?? 0,
+    }),
   );
 
   const summary = entries.reduce(
@@ -225,7 +216,11 @@ export function getPaymentsLedger(query: unknown = {}): PaymentsLedger {
       }
       return acc;
     },
-    { totalPaidCents: 0, firstPaymentAt: null as string | null, lastPaymentAt: null as string | null }
+    {
+      totalPaidCents: 0,
+      firstPaymentAt: null as string | null,
+      lastPaymentAt: null as string | null,
+    },
   );
 
   const payload = {
@@ -235,8 +230,8 @@ export function getPaymentsLedger(query: unknown = {}): PaymentsLedger {
       entriesCount: entries.length,
       totalPaidCents: summary.totalPaidCents,
       firstPaymentAt: summary.firstPaymentAt,
-      lastPaymentAt: summary.lastPaymentAt
-    }
+      lastPaymentAt: summary.lastPaymentAt,
+    },
   } satisfies PaymentsLedger;
 
   return paymentsLedgerSchema.parse(payload);

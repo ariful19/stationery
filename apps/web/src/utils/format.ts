@@ -11,8 +11,8 @@ const getCurrencyFormatter = (currency: string, locale: string) => {
         style: 'currency',
         currency,
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      })
+        maximumFractionDigits: 2,
+      }),
     );
   }
   return currencyFormatterCache.get(key)!;
@@ -41,7 +41,11 @@ export const numberToCents = (value: number | string | null | undefined) => {
 export const formatCurrency = (valueCents: number, currency = 'USD', locale = 'en-US') =>
   getCurrencyFormatter(currency, locale).format(centsToNumber(valueCents));
 
-export const formatDate = (value: string, locale = 'en-US', options?: Intl.DateTimeFormatOptions) => {
+export const formatDate = (
+  value: string,
+  locale = 'en-US',
+  options?: Intl.DateTimeFormatOptions,
+) => {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;

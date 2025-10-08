@@ -42,7 +42,13 @@ export class PdfPreview extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: repeating-linear-gradient(45deg, rgba(37, 99, 235, 0.05) 0, rgba(37, 99, 235, 0.05) 10px, transparent 10px, transparent 20px);
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(37, 99, 235, 0.05) 0,
+        rgba(37, 99, 235, 0.05) 10px,
+        transparent 10px,
+        transparent 20px
+      );
     }
 
     iframe,
@@ -116,9 +122,7 @@ export class PdfPreview extends LitElement {
           ${this.loading ? 'Loading…' : 'Refresh'}
         </button>
       </header>
-      <div class="viewer" role="region" aria-live="polite">
-        ${this.renderViewer()}
-      </div>
+      <div class="viewer" role="region" aria-live="polite">${this.renderViewer()}</div>
     `;
   }
 

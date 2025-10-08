@@ -29,7 +29,9 @@ export class ProductPicker extends LitElement {
       background: var(--color-surface);
       padding: calc(var(--space-sm) + 1px) var(--space-lg);
       font-size: 0.95rem;
-      transition: border-color var(--transition-snappy), box-shadow var(--transition-snappy);
+      transition:
+        border-color var(--transition-snappy),
+        box-shadow var(--transition-snappy);
     }
 
     input[type='search']:focus-visible {
@@ -112,7 +114,7 @@ export class ProductPicker extends LitElement {
   get filteredProducts() {
     const search = this.query.trim().toLowerCase();
     if (!search) return this.products;
-    return this.products.filter(product => {
+    return this.products.filter((product) => {
       const haystack = `${product.sku} ${product.name}`.toLowerCase();
       return haystack.includes(search);
     });
@@ -121,13 +123,13 @@ export class ProductPicker extends LitElement {
   private selectProduct(product: Product) {
     this.value = product.id;
     this.query = `${product.sku} — ${product.name}`;
-    this.activeIndex = this.filteredProducts.findIndex(item => item.id === product.id);
+    this.activeIndex = this.filteredProducts.findIndex((item) => item.id === product.id);
     this.dispatchEvent(
       new CustomEvent('product-select', {
         detail: { product },
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   }
 
@@ -140,7 +142,7 @@ export class ProductPicker extends LitElement {
   private handleFocus = (event: FocusEvent) => {
     const target = event.target as HTMLInputElement;
     if (!target.value && this.value) {
-      const product = this.products.find(item => item.id === this.value);
+      const product = this.products.find((item) => item.id === this.value);
       if (product) {
         this.query = `${product.sku} — ${product.name}`;
       }
@@ -184,10 +186,10 @@ export class ProductPicker extends LitElement {
 
   protected updated(changed: Map<string, unknown>): void {
     if (changed.has('value')) {
-      const product = this.products.find(item => item.id === this.value);
+      const product = this.products.find((item) => item.id === this.value);
       if (product) {
         this.query = `${product.sku} — ${product.name}`;
-        const index = this.filteredProducts.findIndex(item => item.id === product.id);
+        const index = this.filteredProducts.findIndex((item) => item.id === product.id);
         if (index >= 0) {
           this.activeIndex = index;
         }
@@ -241,7 +243,9 @@ export class ProductPicker extends LitElement {
                 </li>
               `;
             })
-          : html`<li class="empty-state" role="presentation">No products match “${this.query}”.</li>`}
+          : html`<li class="empty-state" role="presentation">
+              No products match “${this.query}”.
+            </li>`}
       </ul>
     `;
   }

@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+
 import type { Response } from 'express';
 
 export interface PdfResponseOptions {

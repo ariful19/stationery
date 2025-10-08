@@ -1,4 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { createTestDatabase, resetTestDatabase } from '../test-utils/create-test-db.js';
 
 const testDb = createTestDatabase();
@@ -34,7 +35,7 @@ function seedLedger(): SeedData {
       name: 'Notebook',
       description: 'Plain notebook',
       unitPriceCents: 2500,
-      stockQty: 10
+      stockQty: 10,
     })
     .returning({ id: testDb.products.id, price: testDb.products.unitPriceCents })
     .get();
@@ -49,7 +50,7 @@ function seedLedger(): SeedData {
       discountCents: 0,
       taxCents: 250,
       grandTotalCents: 5250,
-      status: 'issued'
+      status: 'issued',
     })
     .returning({ id: testDb.invoices.id, grandTotalCents: testDb.invoices.grandTotalCents })
     .get();
@@ -62,7 +63,7 @@ function seedLedger(): SeedData {
       quantity: 2,
       unitPriceCents: product.price,
       lineTotalCents: 5000,
-      description: 'Notebooks'
+      description: 'Notebooks',
     })
     .run();
 
@@ -76,7 +77,7 @@ function seedLedger(): SeedData {
       discountCents: 0,
       taxCents: 0,
       grandTotalCents: 10000,
-      status: 'partial'
+      status: 'partial',
     })
     .returning({ id: testDb.invoices.id, grandTotalCents: testDb.invoices.grandTotalCents })
     .get();
@@ -89,7 +90,7 @@ function seedLedger(): SeedData {
       quantity: 4,
       unitPriceCents: product.price,
       lineTotalCents: 10000,
-      description: 'Bulk notebooks'
+      description: 'Bulk notebooks',
     })
     .run();
 
@@ -103,7 +104,7 @@ function seedLedger(): SeedData {
       discountCents: 500,
       taxCents: 0,
       grandTotalCents: 7000,
-      status: 'paid'
+      status: 'paid',
     })
     .returning({ id: testDb.invoices.id, grandTotalCents: testDb.invoices.grandTotalCents })
     .get();
@@ -116,7 +117,7 @@ function seedLedger(): SeedData {
       quantity: 3,
       unitPriceCents: product.price,
       lineTotalCents: 7500,
-      description: 'Beta order'
+      description: 'Beta order',
     })
     .run();
 
@@ -128,7 +129,7 @@ function seedLedger(): SeedData {
       amountCents: 2000,
       method: 'card',
       paidAt: '2024-03-20T10:00:00.000Z',
-      note: 'Partial payment A'
+      note: 'Partial payment A',
     })
     .run();
 
@@ -140,7 +141,7 @@ function seedLedger(): SeedData {
       amountCents: 4000,
       method: 'other',
       paidAt: '2024-04-15T08:00:00.000Z',
-      note: 'Partial payment B'
+      note: 'Partial payment B',
     })
     .run();
 
@@ -152,7 +153,7 @@ function seedLedger(): SeedData {
       amountCents: invoiceC.grandTotalCents,
       method: 'cash',
       paidAt: '2024-05-06T09:30:00.000Z',
-      note: 'Paid in full'
+      note: 'Paid in full',
     })
     .run();
 
@@ -160,7 +161,7 @@ function seedLedger(): SeedData {
     customerA,
     customerB,
     invoiceA: { id: invoiceA.id, grandTotalCents: invoiceA.grandTotalCents },
-    invoiceB: { id: invoiceB.id, grandTotalCents: invoiceB.grandTotalCents }
+    invoiceB: { id: invoiceB.id, grandTotalCents: invoiceB.grandTotalCents },
   };
 }
 
@@ -176,15 +177,15 @@ describe('report-data services', () => {
   it('builds dues report summaries with optional filters', () => {
     const seeded = seedLedger();
 
-  const all = getDuesReport();
-  expect(all.summary.customersCount).toBeGreaterThan(0);
-  const alpha = all.customers.find(row => row.customerId === seeded.customerA);
-  expect(alpha?.balanceCents).toBe(5250 + 10000 - (2000 + 4000));
+    const all = getDuesReport();
+    expect(all.summary.customersCount).toBeGreaterThan(0);
+    const alpha = all.customers.find((row) => row.customerId === seeded.customerA);
+    expect(alpha?.balanceCents).toBe(5250 + 10000 - (2000 + 4000));
 
     const filtered = getDuesReport({
       customerId: seeded.customerA,
       minBalanceCents: 1000,
-      search: 'alpha'
+      search: 'alpha',
     });
     expect(filtered.customers).toHaveLength(1);
     expect(filtered.customers[0]?.customerId).toBe(seeded.customerA);
@@ -194,7 +195,7 @@ describe('report-data services', () => {
     seedLedger();
     const report = getSalesReport({ groupBy: 'month', from: '2024-03-01', to: '2024-05-31' });
     expect(report.rows.length).toBeGreaterThan(0);
-    const months = report.rows.map(row => row.period);
+    const months = report.rows.map((row) => row.period);
     expect(months).toContain('2024-03');
     expect(months).toContain('2024-04');
     expect(report.summary.totalInvoicesCount).toBeGreaterThan(0);
@@ -203,15 +204,15 @@ describe('report-data services', () => {
   it('retrieves payments ledger entries with ordering and filters', () => {
     const seeded = seedLedger();
 
-  const descLedger = getPaymentsLedger({ customerId: seeded.customerA });
-  expect(descLedger.entries[0]?.invoiceId).toBeDefined();
-  expect(descLedger.summary.totalPaidCents).toBe(2000 + 4000);
+    const descLedger = getPaymentsLedger({ customerId: seeded.customerA });
+    expect(descLedger.entries[0]?.invoiceId).toBeDefined();
+    expect(descLedger.summary.totalPaidCents).toBe(2000 + 4000);
     const ascLedger = getPaymentsLedger({
       customerId: seeded.customerA,
       invoiceId: seeded.invoiceB.id,
       from: '2024-04-01',
       to: '2024-04-30',
-      direction: 'asc'
+      direction: 'asc',
     });
     expect(ascLedger.entries).toHaveLength(1);
     expect(ascLedger.entries[0]?.invoiceId).toBe(seeded.invoiceB.id);

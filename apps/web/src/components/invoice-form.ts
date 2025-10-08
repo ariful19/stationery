@@ -1,6 +1,10 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { calculateInvoiceTotals, invoiceStatusSchema, type InvoiceCreateInput } from '@stationery/shared';
+import {
+  calculateInvoiceTotals,
+  invoiceStatusSchema,
+  type InvoiceCreateInput,
+} from '@stationery/shared';
 import type { Customer, Product } from '../api/client.js';
 import './product-picker.js';
 import './money-input.js';
@@ -18,7 +22,7 @@ interface InvoiceLineDraft {
 const newLine = (): InvoiceLineDraft => ({
   id: Math.random().toString(36).slice(2),
   quantity: 1,
-  unitPriceCents: 0
+  unitPriceCents: 0,
 });
 
 @customElement('invoice-form')
@@ -196,37 +200,37 @@ export class InvoiceForm extends LitElement {
   private lines: InvoiceLineDraft[] = [newLine()];
 
   private get totals() {
-    const validLines = this.lines.filter(line => line.productId && line.quantity > 0);
+    const validLines = this.lines.filter((line) => line.productId && line.quantity > 0);
     const calculation = calculateInvoiceTotals(
       {
-        items: validLines.map(line => ({
+        items: validLines.map((line) => ({
           productId: line.productId!,
           quantity: line.quantity,
           unitPriceCents: line.unitPriceCents,
-          description: line.description
+          description: line.description,
         })),
         discountCents: this.discountCents,
-        taxCents: this.taxCents
+        taxCents: this.taxCents,
       },
-      { decimals: 0 }
+      { decimals: 0 },
     );
     return calculation;
   }
 
   private updateLine(id: string, changes: Partial<InvoiceLineDraft>) {
-    this.lines = this.lines.map(line => (line.id === id ? { ...line, ...changes } : line));
+    this.lines = this.lines.map((line) => (line.id === id ? { ...line, ...changes } : line));
   }
 
   private removeLine(id: string) {
     if (this.lines.length === 1) return;
-    this.lines = this.lines.filter(line => line.id !== id);
+    this.lines = this.lines.filter((line) => line.id !== id);
   }
 
   private handleProductSelect(id: string, product: Product) {
     this.updateLine(id, {
       productId: product.id,
       unitPriceCents: product.unitPriceCents,
-      description: product.description ?? undefined
+      description: product.description ?? undefined,
     });
   }
 
@@ -263,7 +267,11 @@ export class InvoiceForm extends LitElement {
     this.updateComplete.then(() => {
       const node = this.renderRoot.querySelector(`[data-line-id='${line.id}']`);
       if (node) {
-        animate(node as Element, { opacity: [0, 1], y: [-6, 0] }, { duration: 0.18, easing: 'ease-out' });
+        animate(
+          node as Element,
+          { opacity: [0, 1], y: [-6, 0] },
+          { duration: 0.18, easing: 'ease-out' },
+        );
       }
     });
   }
@@ -271,12 +279,12 @@ export class InvoiceForm extends LitElement {
   private buildPayload(): InvoiceCreateInput | null {
     if (!this.customer) return null;
     const items = this.lines
-      .filter(line => line.productId && line.quantity > 0)
-      .map(line => ({
+      .filter((line) => line.productId && line.quantity > 0)
+      .map((line) => ({
         productId: line.productId!,
         quantity: line.quantity,
         unitPriceCents: line.unitPriceCents,
-        description: line.description
+        description: line.description,
       }));
 
     if (!items.length) return null;
@@ -287,7 +295,7 @@ export class InvoiceForm extends LitElement {
       discountCents: this.discountCents,
       taxCents: this.taxCents,
       notes: this.notes || undefined,
-      items
+      items,
     };
   }
 
@@ -296,7 +304,11 @@ export class InvoiceForm extends LitElement {
     const payload = this.buildPayload();
     if (!payload) {
       this.dispatchEvent(
-        new CustomEvent('invoice-invalid', { detail: { reason: 'missing_fields' }, bubbles: true, composed: true })
+        new CustomEvent('invoice-invalid', {
+          detail: { reason: 'missing_fields' },
+          bubbles: true,
+          composed: true,
+        }),
       );
       return;
     }
@@ -305,8 +317,8 @@ export class InvoiceForm extends LitElement {
       new CustomEvent<InvoiceCreateInput>('invoice-submit', {
         detail: payload,
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   };
 
@@ -315,7 +327,7 @@ export class InvoiceForm extends LitElement {
     return html`
       <form @submit=${this.handleSubmit}>
         <div class="lines">
-          ${this.lines.map(line => {
+          ${this.lines.map((line) => {
             return html`
               <div class="line" data-line-id=${line.id}>
                 <div class="line-main">
@@ -352,7 +364,13 @@ export class InvoiceForm extends LitElement {
                     this.handlePriceChange(line.id, event.detail.value)}
                 ></money-input>
                 <div class="line-actions">
-                  <button type="button" @click=${() => this.removeLine(line.id)} aria-label="Remove line">✕</button>
+                  <button
+                    type="button"
+                    @click=${() => this.removeLine(line.id)}
+                    aria-label="Remove line"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
             `;
@@ -364,12 +382,14 @@ export class InvoiceForm extends LitElement {
           <money-input
             label="Discount"
             .value=${this.discountCents}
-            @value-change=${(event: CustomEvent<{ value: number }>) => (this.discountCents = event.detail.value)}
+            @value-change=${(event: CustomEvent<{ value: number }>) =>
+              (this.discountCents = event.detail.value)}
           ></money-input>
           <money-input
             label="Tax"
             .value=${this.taxCents}
-            @value-change=${(event: CustomEvent<{ value: number }>) => (this.taxCents = event.detail.value)}
+            @value-change=${(event: CustomEvent<{ value: number }>) =>
+              (this.taxCents = event.detail.value)}
           ></money-input>
         </div>
 
@@ -408,7 +428,9 @@ export class InvoiceForm extends LitElement {
           <label>
             <span>Status</span>
             <select .value=${this.status} @change=${this.handleStatusChange}>
-              ${invoiceStatusSchema.options.map(status => html`<option value=${status}>${status}</option>`)}
+              ${invoiceStatusSchema.options.map(
+                (status) => html`<option value=${status}>${status}</option>`,
+              )}
             </select>
           </label>
           <button type="submit" ?disabled=${this.submitting || !this.customer}>

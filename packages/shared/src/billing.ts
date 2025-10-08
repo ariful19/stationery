@@ -7,13 +7,7 @@
  * - `FLOOR`: rounds toward negative infinity.
  * - `TRUNCATE`: removes the fractional part without rounding.
  */
-export type RoundingMode =
-  | 'HALF_UP'
-  | 'HALF_DOWN'
-  | 'HALF_EVEN'
-  | 'CEIL'
-  | 'FLOOR'
-  | 'TRUNCATE';
+export type RoundingMode = 'HALF_UP' | 'HALF_DOWN' | 'HALF_EVEN' | 'CEIL' | 'FLOOR' | 'TRUNCATE';
 
 export interface RoundingConfig {
   /** Number of decimal places to retain. Defaults to 0 for cent values. */
@@ -24,7 +18,7 @@ export interface RoundingConfig {
 
 const getRoundingConfig = (config?: RoundingConfig) => ({
   decimals: config?.decimals ?? 0,
-  mode: config?.mode ?? 'HALF_EVEN'
+  mode: config?.mode ?? 'HALF_EVEN',
 });
 
 const EPSILON = 1e-10;
@@ -64,11 +58,12 @@ const roundScaledValue = (scaled: number, mode: RoundingMode) => {
       if (fraction < 0.5 - EPSILON) return sign * floorAbs;
       return sign * floorAbs;
     case 'HALF_EVEN':
-    default:
+    default: {
       if (fraction > 0.5 + EPSILON) return sign * ceilAbs;
       if (fraction < 0.5 - EPSILON) return sign * floorAbs;
       const roundedAbs = isTie && floorAbs % 2 !== 0 ? ceilAbs : floorAbs;
       return sign * roundedAbs;
+    }
   }
 };
 
@@ -111,7 +106,11 @@ export const resolveInvoiceSeriesKey = (date = new Date(), config?: InvoiceNumbe
  * Builds an invoice number given the current sequence counter. The function is pure; callers are
  * responsible for providing the sequence that should follow the last persisted invoice.
  */
-export const buildInvoiceNumber = (sequence: number, date = new Date(), config?: InvoiceNumberConfig) => {
+export const buildInvoiceNumber = (
+  sequence: number,
+  date = new Date(),
+  config?: InvoiceNumberConfig,
+) => {
   if (!Number.isFinite(sequence) || sequence < 0) {
     throw new Error('sequence must be a non-negative finite number');
   }
@@ -165,14 +164,12 @@ const normalizeMoneyInput = (value: number | undefined, fallback = 0) => {
  * Calculates line totals, discount, tax, and the resulting grand total. The function gracefully
  * handles returns (negative quantities) and zero-value lines while ensuring deterministic rounding.
  */
-export const calculateInvoiceTotals = <
-  T extends Record<string, unknown> = Record<string, never>
->(
+export const calculateInvoiceTotals = <T extends Record<string, unknown> = Record<string, never>>(
   input: InvoiceTotalsInput<T>,
-  rounding?: RoundingConfig
+  rounding?: RoundingConfig,
 ): InvoiceTotalsResult<T> => {
   const roundingConfig = getRoundingConfig(rounding);
-  const items = input.items.map(item => {
+  const items = input.items.map((item) => {
     const { quantity: rawQuantity, unitPriceCents: rawUnitPriceCents, ...rest } = item;
     const quantity = normalizeMoneyInput(rawQuantity);
     const unitPriceCents = normalizeMoneyInput(rawUnitPriceCents);
@@ -182,7 +179,7 @@ export const calculateInvoiceTotals = <
       ...(rest as unknown as T),
       quantity,
       unitPriceCents,
-      lineTotalCents
+      lineTotalCents,
     };
   });
 
@@ -206,7 +203,7 @@ export const calculateInvoiceTotals = <
     subTotalCents: subTotal,
     discountCents: discount,
     taxCents: tax,
-    grandTotalCents: grandTotal
+    grandTotalCents: grandTotal,
   };
 };
 
@@ -216,7 +213,7 @@ export const calculateInvoiceTotals = <
 export const calculateCustomerDueCents = (
   invoicesCents: number,
   paymentsCents: number,
-  rounding?: RoundingConfig
+  rounding?: RoundingConfig,
 ) => {
   const roundingConfig = getRoundingConfig(rounding);
   if (roundingConfig.decimals !== 0) {

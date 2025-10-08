@@ -18,16 +18,16 @@ import {
   healthCheckExample,
   healthCheckSchema,
   invoiceCreateSchema,
-  invoiceSchema,
   invoicePdfRequestSchema,
+  invoiceSchema,
   paymentCreateSchema,
   paymentSchema,
-  productCreateSchema,
-  productSchema,
   paymentsLedgerQuerySchema,
   paymentsLedgerSchema,
+  productCreateSchema,
+  productSchema,
   salesReportQuerySchema,
-  salesReportSchema
+  salesReportSchema,
 } from './index.js';
 
 describe('shared schemas', () => {
@@ -37,7 +37,7 @@ describe('shared schemas', () => {
 
   it('rejects empty customer updates', () => {
     expect(() => customerUpdateSchema.parse({})).toThrowError(
-      /At least one field must be provided to update a customer/
+      /At least one field must be provided to update a customer/,
     );
   });
 

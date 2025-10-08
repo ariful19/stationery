@@ -1,12 +1,8 @@
-import {
-  type DuesReport,
-  type PaymentsLedger,
-  type SalesReport
-} from '@stationery/shared';
+import { type DuesReport, type PaymentsLedger, type SalesReport } from '@stationery/shared';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
-  currency: 'USD'
+  currency: 'USD',
 });
 
 const formatCurrency = (cents: number) => currency.format(cents / 100);
@@ -120,14 +116,14 @@ export function renderDuesReportHtml(report: DuesReport) {
       <tbody>
         ${report.customers
           .map(
-            customer => `
+            (customer) => `
               <tr>
                 <td>${customer.customerName}</td>
                 <td>${formatCurrency(customer.invoicedCents)}</td>
                 <td>${formatCurrency(customer.paidCents)}</td>
                 <td>${formatCurrency(customer.balanceCents)}</td>
               </tr>
-            `
+            `,
           )
           .join('')}
       </tbody>
@@ -162,13 +158,13 @@ export function renderSalesReportHtml(report: SalesReport) {
       <tbody>
         ${report.rows
           .map(
-            row => `
+            (row) => `
               <tr>
                 <td>${row.period}</td>
                 <td>${row.invoicesCount}</td>
                 <td>${formatCurrency(row.totalCents)}</td>
               </tr>
-            `
+            `,
           )
           .join('')}
       </tbody>
@@ -211,7 +207,7 @@ export function renderPaymentsLedgerHtml(ledger: PaymentsLedger) {
       <tbody>
         ${ledger.entries
           .map(
-            entry => `
+            (entry) => `
               <tr>
                 <td>${new Date(entry.paidAt).toLocaleString()}</td>
                 <td>${entry.customerName}</td>
@@ -221,7 +217,7 @@ export function renderPaymentsLedgerHtml(ledger: PaymentsLedger) {
                 <td>${formatCurrency(entry.runningBalanceCents)}</td>
                 <td>${entry.note ?? ''}</td>
               </tr>
-            `
+            `,
           )
           .join('')}
       </tbody>

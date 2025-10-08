@@ -3,12 +3,11 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
-export const createNotFoundError = (message: string) =>
-  new ApiError(404, 'not_found', message);
+export const createNotFoundError = (message: string) => new ApiError(404, 'not_found', message);

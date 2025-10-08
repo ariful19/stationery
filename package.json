@@ -14,7 +14,12 @@
     "predev": "pnpm --filter @stationery/shared build",
     "prebuild": "pnpm --filter @stationery/shared build",
     "pretest": "pnpm --filter @stationery/shared build",
-    "pree2e": "pnpm --filter @stationery/shared build"
+    "pree2e": "pnpm --filter @stationery/shared build",
+    "format:check": "pnpm -r run format:check",
+    "db:push": "pnpm --filter @stationery/api db:push",
+    "seed": "pnpm --filter @stationery/api db:seed",
+    "seed:faker": "pnpm --filter @stationery/api db:seed:faker",
+    "hooks:install": "./scripts/setup-pre-commit.sh"
   },
   "devDependencies": {
     "@types/node": "20.12.7",

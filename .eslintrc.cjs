@@ -26,7 +26,8 @@ module.exports = {
     'prettier/prettier': 'warn',
     'simple-import-sort/imports': 'warn',
     'simple-import-sort/exports': 'warn',
-    'import/order': 'off'
+    'import/order': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
   },
-  ignorePatterns: ['dist', 'build', '.turbo', 'node_modules']
+  ignorePatterns: ['dist', 'build', '.turbo', 'node_modules', 'apps/api/src/templates/invoice/fonts.ts']
 };

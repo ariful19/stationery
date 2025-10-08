@@ -1,28 +1,28 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exampleInvoice } from '@stationery/shared';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const closeMock = vi.fn();
 const pageCloseMock = vi.fn();
 
 vi.mock('../templates/invoice/render.js', () => ({
-  renderInvoiceHtml: vi.fn(() => '<html><body>Puppeteer</body></html>')
+  renderInvoiceHtml: vi.fn(() => '<html><body>Puppeteer</body></html>'),
 }));
 
 vi.mock('puppeteer', () => {
   const page = {
     setContent: vi.fn(async () => {}),
     emulateMediaType: vi.fn(async () => {}),
-    pdf: vi.fn(async () => Buffer.from('%PDF-1.4 test')), 
-    close: pageCloseMock
+    pdf: vi.fn(async () => Buffer.from('%PDF-1.4 test')),
+    close: pageCloseMock,
   };
   const browser = {
     newPage: vi.fn(async () => page),
-    close: closeMock
+    close: closeMock,
   };
   const launcher = vi.fn(async () => browser);
   return {
     default: { launch: launcher },
-    launch: launcher
+    launch: launcher,
   };
 });
 
