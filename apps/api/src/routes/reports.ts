@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { pdfRateLimiter, searchRateLimiter } from '../middleware/rate-limit.js';
 import { getDuesReport, getPaymentsLedger, getSalesReport } from '../services/report-data.js';
 import {
   renderDuesReportPdf,
@@ -14,6 +15,7 @@ const router = Router();
 
 router.get(
   '/dues',
+  searchRateLimiter,
   asyncHandler((req, res) => {
     const report = getDuesReport(req.query);
     res.json(report);
@@ -39,6 +41,7 @@ router.get(
 
 router.get(
   '/dues.pdf',
+  pdfRateLimiter,
   asyncHandler(async (req, res) => {
     const report = getDuesReport(req.query);
     const buffer = await renderDuesReportPdf(report);
@@ -50,6 +53,7 @@ router.get(
 
 router.get(
   '/sales',
+  searchRateLimiter,
   asyncHandler((req, res) => {
     const report = getSalesReport(req.query);
     res.json(report);
@@ -74,6 +78,7 @@ router.get(
 
 router.get(
   '/sales.pdf',
+  pdfRateLimiter,
   asyncHandler(async (req, res) => {
     const report = getSalesReport(req.query);
     const buffer = await renderSalesReportPdf(report);
@@ -85,6 +90,7 @@ router.get(
 
 router.get(
   '/payments',
+  searchRateLimiter,
   asyncHandler((req, res) => {
     const ledger = getPaymentsLedger(req.query);
     res.json(ledger);
@@ -113,6 +119,7 @@ router.get(
 
 router.get(
   '/payments.pdf',
+  pdfRateLimiter,
   asyncHandler(async (req, res) => {
     const ledger = getPaymentsLedger(req.query);
     const buffer = await renderPaymentsLedgerPdf(ledger);

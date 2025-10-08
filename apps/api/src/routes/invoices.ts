@@ -18,8 +18,10 @@ import { Router } from 'express';
 
 import { customers, db, invoiceItems, invoices, payments, products } from '../db/client.js';
 import { ApiError, createNotFoundError } from '../errors.js';
+import { pdfRateLimiter, searchRateLimiter } from '../middleware/rate-limit.js';
 import { getInvoicePdfRenderer } from '../services/invoice-pdf.js';
 import { asyncHandler } from '../utils/async-handler.js';
+import { recordAuditEvent } from '../utils/audit.js';
 import { toIsoDateTime } from '../utils/datetime.js';
 import { maybePreviewPdf, sendPdfBuffer } from '../utils/pdf.js';
 
@@ -190,11 +192,16 @@ router.post(
     const payloadResponse = normalizeInvoice(record as InvoiceRow);
 
     res.status(201).json(payloadResponse);
+    recordAuditEvent(req, 'invoice.created', {
+      invoiceId: payloadResponse.id,
+      customerId: payloadResponse.customerId,
+    });
   }),
 );
 
 router.post(
   '/:id/pdf',
+  pdfRateLimiter,
   asyncHandler(async (req, res) => {
     const id = Number.parseInt(req.params.id, 10);
 
@@ -252,6 +259,7 @@ router.get(
 
 router.get(
   '/',
+  searchRateLimiter,
   asyncHandler(async (req, res) => {
     const query = invoiceListQuerySchema.parse(req.query);
     const statuses = query.status
