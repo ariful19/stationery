@@ -99,24 +99,24 @@ router.get(
           ? filters[0]
           : and(...(filters as [SQL, SQL, ...SQL[]]));
 
-    let selection = db.select().from(payments);
-    if (whereClause) {
-      selection = selection.where(whereClause);
-    }
+    const baseSelection = db.select().from(payments);
+    const filteredSelection = whereClause
+      ? baseSelection.where(whereClause)
+      : baseSelection;
 
-    selection =
+    const orderedSelection =
       query.direction === 'asc'
-        ? selection.orderBy(payments.paidAt)
-        : selection.orderBy(desc(payments.paidAt));
+        ? filteredSelection.orderBy(payments.paidAt)
+        : filteredSelection.orderBy(desc(payments.paidAt));
 
-    const rows = selection.limit(query.limit).offset(query.offset).all();
+    const rows = orderedSelection.limit(query.limit).offset(query.offset).all();
 
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(payments);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(payments);
+    const filteredCountQuery = whereClause
+      ? baseCountQuery.where(whereClause)
+      : baseCountQuery;
 
-    const total = countQuery.get()?.count ?? rows.length;
+    const total = filteredCountQuery.get()?.count ?? rows.length;
 
     const payload = paymentListResponseSchema.parse({
       data: rows.map(normalizePayment),

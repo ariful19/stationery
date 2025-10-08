@@ -11,3 +11,5 @@ node-compile-cache
 apps/**/test-results
 apps/**/node_modules
 **/*.tsbuildinfo
+apps/api/tmp
+apps/api/stationery.sqlite

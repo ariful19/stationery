@@ -33,24 +33,24 @@ router.get(
 
     const orderColumn = query.sort === 'name' ? customers.name : customers.createdAt;
 
-    let selection = db.select().from(customers);
-    if (whereClause) {
-      selection = selection.where(whereClause);
-    }
+    const baseSelection = db.select().from(customers);
+    const filteredSelection = whereClause
+      ? baseSelection.where(whereClause)
+      : baseSelection;
 
-    selection =
+    const orderedSelection =
       query.direction === 'asc'
-        ? selection.orderBy(orderColumn)
-        : selection.orderBy(desc(orderColumn));
+        ? filteredSelection.orderBy(orderColumn)
+        : filteredSelection.orderBy(desc(orderColumn));
 
-    const rows = selection.limit(query.limit).offset(query.offset).all();
+    const rows = orderedSelection.limit(query.limit).offset(query.offset).all();
 
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(customers);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(customers);
+    const filteredCountQuery = whereClause
+      ? baseCountQuery.where(whereClause)
+      : baseCountQuery;
 
-    const total = countQuery.get()?.count ?? rows.length;
+    const total = filteredCountQuery.get()?.count ?? rows.length;
 
     const payload = customerListResponseSchema.parse({
       data: rows.map(row => ({

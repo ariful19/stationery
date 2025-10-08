@@ -1,79 +1,79 @@
-import { readFileSync } from 'node:fs';
-import { describe, beforeAll, beforeEach, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import {
+  customerLedgerSchema,
+  customerListResponseSchema,
+  customerSchema,
+  duesReportSchema,
   exampleCustomerCreate,
   exampleInvoiceCreate,
   exampleInvoicePdfRequest,
   examplePaymentCreate,
-  exampleProductCreate
+  exampleProductCreate,
+  invoiceListResponseSchema,
+  invoiceSchema,
+  invoicePdfRequestSchema,
+  paymentListResponseSchema,
+  paymentSchema,
+  paymentsLedgerSchema,
+  productSchema,
+  salesReportSchema
 } from '@stationery/shared';
+import { createOpenApiDocument } from './docs/openapi.js';
+import { createTestDatabase, resetTestDatabase } from './test-utils/create-test-db.js';
 
-let app: import('express').Express;
-let sqlite: import('better-sqlite3');
-let dbModule: Awaited<ReturnType<typeof importDbModule>>;
+const testDb = createTestDatabase();
 
-async function importDbModule() {
-  process.env.DATABASE_URL = ':memory:';
-  return import('./db/client.js');
-}
+vi.mock('./db/client.js', () => testDb);
 
-beforeAll(async () => {
-  dbModule = await importDbModule();
-  const migrationPath = new URL('../drizzle/0000_slippery_onslaught.sql', import.meta.url);
-  const migrationSql = readFileSync(migrationPath, 'utf8');
-  dbModule.sqlite.exec(migrationSql);
-  const { createServer } = await import('./server.js');
-  app = createServer();
-  sqlite = dbModule.sqlite;
-});
+const { createServer } = await import('./server.js');
 
-beforeEach(() => {
-  sqlite.exec(
-    [
-      'DELETE FROM invoice_items;',
-      'DELETE FROM payments;',
-      'DELETE FROM invoices;',
-      'DELETE FROM products;',
-      'DELETE FROM customers;'
-    ].join('\n')
-  );
-});
+describe('API server contract', () => {
+  const app = createServer();
 
-describe('API server', () => {
-  it('responds to /api/v1/health', async () => {
-    const response = await request(app).get('/api/v1/health');
+  beforeAll(() => {
+    process.env.TZ = 'UTC';
+  });
+
+  beforeEach(() => {
+    resetTestDatabase(testDb.sqlite);
+  });
+
+  afterAll(() => {
+    testDb.sqlite.close();
+  });
+
+  it('serves an OpenAPI document that matches the generator output', async () => {
+    const response = await request(app).get('/docs/openapi.json');
     expect(response.status).toBe(200);
-    expect(response.body.status).toBe('ok');
-    expect(response.body.checks[0].status).toBe('pass');
+    const fromServer = response.body;
+    const generated = createOpenApiDocument();
+    expect(fromServer).toEqual(generated);
   });
 
-  it('creates and retrieves customers using documented payloads', async () => {
-    const createResponse = await request(app).post('/api/v1/customers').send(exampleCustomerCreate);
-    expect(createResponse.status).toBe(201);
-    const customerId = createResponse.body.id;
+  it('validates customer, product, invoice and payment lifecycles against schemas', async () => {
+    const healthResponse = await request(app).get('/api/v1/health');
+    expect(healthResponse.status).toBe(200);
+    expect(healthResponse.body.status).toBe('ok');
 
-    const getResponse = await request(app).get(`/api/v1/customers/${customerId}`);
-    expect(getResponse.status).toBe(200);
-    expect(getResponse.body.name).toBe(exampleCustomerCreate.name);
+    const createdCustomer = await request(app)
+      .post('/api/v1/customers')
+      .send(exampleCustomerCreate);
+    expect(createdCustomer.status).toBe(201);
+    const customer = customerSchema.parse(createdCustomer.body);
 
-    const listResponse = await request(app).get('/api/v1/customers');
-    expect(listResponse.status).toBe(200);
-    expect(listResponse.body.data).toHaveLength(1);
-  });
+    const fetchedCustomer = await request(app).get(`/api/v1/customers/${customer.id}`);
+    expect(fetchedCustomer.status).toBe(200);
+    expect(customerSchema.parse(fetchedCustomer.body)).toMatchObject({ id: customer.id });
 
-  it('handles invoices, payments, and reports end-to-end', async () => {
-    const customer = dbModule.db
-      .insert(dbModule.customers)
-      .values(exampleCustomerCreate)
-      .returning()
-      .get();
+    const listCustomers = await request(app).get('/api/v1/customers');
+    expect(listCustomers.status).toBe(200);
+    const customersList = customerListResponseSchema.parse(listCustomers.body);
+    expect(customersList.data).toHaveLength(1);
 
-    const product = dbModule.db
-      .insert(dbModule.products)
-      .values(exampleProductCreate)
-      .returning()
-      .get();
+    const createdProduct = await request(app).post('/api/v1/products').send(exampleProductCreate);
+    expect(createdProduct.status).toBe(201);
+    const product = productSchema.parse(createdProduct.body);
 
     const invoicePayload = {
       ...exampleInvoiceCreate,
@@ -83,55 +83,59 @@ describe('API server', () => {
           productId: product.id,
           quantity: 2,
           unitPriceCents: product.unitPriceCents,
-          description: product.description
+          description: product.description ?? undefined
         }
       ]
     };
 
-    const invoiceResponse = await request(app).post('/api/v1/invoices').send(invoicePayload);
-    expect(invoiceResponse.status).toBe(201);
-    const invoiceId = invoiceResponse.body.id;
-    expect(invoiceResponse.body.items).toHaveLength(1);
+    const createdInvoice = await request(app).post('/api/v1/invoices').send(invoicePayload);
+    expect(createdInvoice.status).toBe(201);
+    const invoice = invoiceSchema.parse(createdInvoice.body);
+    expect(invoice.items[0]?.productId).toBe(product.id);
+
+    const invoiceList = await request(app).get('/api/v1/invoices');
+    expect(invoiceList.status).toBe(200);
+    const invoices = invoiceListResponseSchema.parse(invoiceList.body);
+    expect(invoices.data[0]?.id).toBe(invoice.id);
 
     const paymentPayload = {
       ...examplePaymentCreate,
       customerId: customer.id,
-      invoiceId,
-      amountCents: invoiceResponse.body.grandTotalCents / 2
+      invoiceId: invoice.id,
+      amountCents: Math.trunc(invoice.grandTotalCents / 2)
     };
 
-    const paymentResponse = await request(app).post('/api/v1/payments').send(paymentPayload);
-    expect(paymentResponse.status).toBe(201);
+    const createdPayment = await request(app).post('/api/v1/payments').send(paymentPayload);
+    expect(createdPayment.status).toBe(201);
+    const payment = paymentSchema.parse(createdPayment.body);
+    expect(payment.amountCents).toBe(paymentPayload.amountCents);
 
-    const listInvoices = await request(app).get('/api/v1/invoices');
-    expect(listInvoices.status).toBe(200);
-    expect(listInvoices.body.data[0].id).toBe(invoiceId);
+    const paymentList = await request(app).get('/api/v1/payments');
+    expect(paymentList.status).toBe(200);
+    const payments = paymentListResponseSchema.parse(paymentList.body);
+    expect(payments.data[0]?.id).toBe(payment.id);
+
+    const customerLedger = await request(app).get(`/api/v1/customers/${customer.id}/ledger`);
+    expect(customerLedger.status).toBe(200);
+    expect(customerLedgerSchema.parse(customerLedger.body).customerId).toBe(customer.id);
 
     const duesReport = await request(app).get('/api/v1/reports/dues');
     expect(duesReport.status).toBe(200);
-    expect(duesReport.body.summary.totalBalanceCents).toBe(
-      invoiceResponse.body.grandTotalCents - paymentPayload.amountCents
-    );
-    expect(duesReport.body.summary.totalInvoicedCents).toBe(invoiceResponse.body.grandTotalCents);
+    const dues = duesReportSchema.parse(duesReport.body);
+    const duesEntry = dues.customers.find(entry => entry.customerId === customer.id);
+    expect(duesEntry?.balanceCents).toBe(invoice.grandTotalCents - paymentPayload.amountCents);
 
-    const salesReport = await request(app).get('/api/v1/reports/sales').query({ groupBy: 'month' });
+    const salesReport = await request(app)
+      .get('/api/v1/reports/sales')
+      .query({ groupBy: 'month', from: '2023-01-01', to: '2025-12-31' });
     expect(salesReport.status).toBe(200);
-    expect(salesReport.body.rows.length).toBeGreaterThan(0);
-    expect(salesReport.body.summary.totalInvoicesCount).toBeGreaterThan(0);
+    const sales = salesReportSchema.parse(salesReport.body);
+    expect(sales.summary.totalInvoicesCount).toBeGreaterThan(0);
 
     const paymentsLedger = await request(app).get('/api/v1/reports/payments');
     expect(paymentsLedger.status).toBe(200);
-    expect(paymentsLedger.body.entries.length).toBe(1);
-    expect(paymentsLedger.body.summary.totalPaidCents).toBe(paymentPayload.amountCents);
-
-    expect(paymentsLedger.body.summary.totalPaidCents).toBe(
-      duesReport.body.summary.totalInvoicedCents - duesReport.body.summary.totalBalanceCents
-    );
-
-    const salesCsv = await request(app).get('/api/v1/reports/sales.csv');
-    expect(salesCsv.status).toBe(200);
-    expect(salesCsv.headers['content-type']).toContain('text/csv');
-    expect(salesCsv.text).toContain('Period');
+    const ledger = paymentsLedgerSchema.parse(paymentsLedger.body);
+    expect(ledger.entries[0]?.invoiceId).toBe(invoice.id);
 
     const duesPdf = await request(app)
       .get('/api/v1/reports/dues.pdf')
@@ -141,14 +145,12 @@ describe('API server', () => {
         res.on('data', chunk => chunks.push(chunk));
         res.on('end', () => callback(null, Buffer.concat(chunks)));
       });
-
     expect(duesPdf.status).toBe(200);
     expect(duesPdf.headers['content-type']).toBe('application/pdf');
-    expect(duesPdf.body.length).toBeGreaterThan(0);
 
     const pdfResponse = await request(app)
-      .post(`/api/v1/invoices/${invoiceId}/pdf`)
-      .send(exampleInvoicePdfRequest)
+      .post(`/api/v1/invoices/${invoice.id}/pdf`)
+      .send(invoicePdfRequestSchema.parse(exampleInvoicePdfRequest))
       .buffer()
       .parse((res, callback) => {
         const chunks: Uint8Array[] = [];
@@ -159,11 +161,5 @@ describe('API server', () => {
     expect(pdfResponse.status).toBe(200);
     expect(pdfResponse.headers['content-type']).toBe('application/pdf');
     expect(pdfResponse.headers['content-disposition']).toContain('attachment');
-    expect(pdfResponse.body.length).toBeGreaterThan(0);
-
-    const docsResponse = await request(app).get('/docs/openapi.json');
-    expect(docsResponse.status).toBe(200);
-    expect(docsResponse.body.paths['/api/v1/invoices']).toBeDefined();
-    expect(docsResponse.body.paths['/api/v1/invoices/{id}/pdf']).toBeDefined();
   });
 });

@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { type DuesReportQuery, type PaymentsLedgerQuery, type SalesReportQuery } from '@stationery/shared';
 import {
   getDuesReport,
   getPaymentsLedger,
@@ -18,8 +17,8 @@ const router = Router();
 
 router.get(
   '/dues',
-  asyncHandler((_req, res) => {
-    const report = getDuesReport(_req.query as DuesReportQuery);
+  asyncHandler((req, res) => {
+    const report = getDuesReport(req.query);
     res.json(report);
   })
 );
@@ -27,7 +26,7 @@ router.get(
 router.get(
   '/dues.csv',
   asyncHandler((req, res) => {
-    const report = getDuesReport(req.query as DuesReportQuery);
+    const report = getDuesReport(req.query);
     streamCsv(res, {
       filename: `dues-report-${new Date().toISOString().slice(0, 10)}.csv`,
       header: ['Customer', 'Invoiced', 'Paid', 'Balance'],
@@ -44,7 +43,7 @@ router.get(
 router.get(
   '/dues.pdf',
   asyncHandler(async (req, res) => {
-    const report = getDuesReport(req.query as DuesReportQuery);
+    const report = getDuesReport(req.query);
     const buffer = await renderDuesReportPdf(report);
     sendPdfBuffer(res, buffer, {
       filename: `dues-report-${new Date().toISOString().slice(0, 10)}.pdf`
@@ -55,7 +54,7 @@ router.get(
 router.get(
   '/sales',
   asyncHandler((req, res) => {
-    const report = getSalesReport(req.query as SalesReportQuery);
+    const report = getSalesReport(req.query);
     res.json(report);
   })
 );
@@ -63,7 +62,7 @@ router.get(
 router.get(
   '/sales.csv',
   asyncHandler((req, res) => {
-    const report = getSalesReport(req.query as SalesReportQuery);
+    const report = getSalesReport(req.query);
     streamCsv(res, {
       filename: `sales-report-${new Date().toISOString().slice(0, 10)}.csv`,
       header: ['Period', 'Invoices', 'Total'],
@@ -79,7 +78,7 @@ router.get(
 router.get(
   '/sales.pdf',
   asyncHandler(async (req, res) => {
-    const report = getSalesReport(req.query as SalesReportQuery);
+    const report = getSalesReport(req.query);
     const buffer = await renderSalesReportPdf(report);
     sendPdfBuffer(res, buffer, {
       filename: `sales-report-${new Date().toISOString().slice(0, 10)}.pdf`
@@ -90,7 +89,7 @@ router.get(
 router.get(
   '/payments',
   asyncHandler((req, res) => {
-    const ledger = getPaymentsLedger(req.query as PaymentsLedgerQuery);
+    const ledger = getPaymentsLedger(req.query);
     res.json(ledger);
   })
 );
@@ -98,7 +97,7 @@ router.get(
 router.get(
   '/payments.csv',
   asyncHandler((req, res) => {
-    const ledger = getPaymentsLedger(req.query as PaymentsLedgerQuery);
+    const ledger = getPaymentsLedger(req.query);
     streamCsv(res, {
       filename: `payments-ledger-${new Date().toISOString().slice(0, 10)}.csv`,
       header: ['Paid At', 'Customer', 'Invoice', 'Method', 'Amount', 'Running Total', 'Note'],
@@ -118,7 +117,7 @@ router.get(
 router.get(
   '/payments.pdf',
   asyncHandler(async (req, res) => {
-    const ledger = getPaymentsLedger(req.query as PaymentsLedgerQuery);
+    const ledger = getPaymentsLedger(req.query);
     const buffer = await renderPaymentsLedgerPdf(ledger);
     sendPdfBuffer(res, buffer, {
       filename: `payments-ledger-${new Date().toISOString().slice(0, 10)}.pdf`

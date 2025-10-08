@@ -10,11 +10,8 @@ import {
   salesReportQuerySchema,
   salesReportSchema,
   type DuesReport,
-  type DuesReportQuery,
   type PaymentsLedger,
-  type PaymentsLedgerQuery,
-  type SalesReport,
-  type SalesReportQuery
+  type SalesReport
 } from '@stationery/shared';
 import {
   customerLedgerView,
@@ -31,8 +28,8 @@ function buildWhereClause(filters: SQL[]) {
   return and(...(filters as [SQL, SQL, ...SQL[]]));
 }
 
-export function getDuesReport(query: DuesReportQuery = {}): DuesReport {
-  const parsed = duesReportQuerySchema.parse(query);
+export function getDuesReport(query: unknown = {}): DuesReport {
+  const parsed = duesReportQuerySchema.parse(query ?? {});
 
   const filters: SQL[] = [];
 
@@ -51,12 +48,12 @@ export function getDuesReport(query: DuesReportQuery = {}): DuesReport {
 
   const whereClause = buildWhereClause(filters);
 
-  let selection = db.select().from(customerLedgerView);
-  if (whereClause) {
-    selection = selection.where(whereClause);
-  }
+  const baseSelection = db.select().from(customerLedgerView);
+  const filteredSelection = whereClause
+    ? baseSelection.where(whereClause)
+    : baseSelection;
 
-  const rows = selection.orderBy(desc(customerLedgerView.balanceCents)).all();
+  const rows = filteredSelection.orderBy(desc(customerLedgerView.balanceCents)).all();
   const customersData = rows.map(row => customerLedgerSchema.parse(row));
 
   const summary = customersData.reduce(
@@ -81,8 +78,8 @@ export function getDuesReport(query: DuesReportQuery = {}): DuesReport {
   return duesReportSchema.parse(payload);
 }
 
-export function getSalesReport(query: SalesReportQuery = {}): SalesReport {
-  const parsed = salesReportQuerySchema.parse(query);
+export function getSalesReport(query: unknown = {}): SalesReport {
+  const parsed = salesReportQuerySchema.parse(query ?? {});
 
   const filters: SQL[] = [inArrayIssuedStatuses()];
 
@@ -98,7 +95,7 @@ export function getSalesReport(query: SalesReportQuery = {}): SalesReport {
 
   const strftimeFormat = groupFormats[parsed.groupBy];
 
-  let selection = db
+  const baseSelection = db
     .select({
       period: sql<string>`strftime(${strftimeFormat}, ${invoices.issueDate})`,
       invoicesCount: sql<number>`count(*)`,
@@ -108,11 +105,11 @@ export function getSalesReport(query: SalesReportQuery = {}): SalesReport {
     .groupBy(sql`strftime(${strftimeFormat}, ${invoices.issueDate})`)
     .orderBy(sql`strftime(${strftimeFormat}, ${invoices.issueDate})`);
 
-  if (whereClause) {
-    selection = selection.where(whereClause);
-  }
+  const filteredSelection = whereClause
+    ? baseSelection.where(whereClause)
+    : baseSelection;
 
-  const rows = selection.all();
+  const rows = filteredSelection.all();
 
   const parsedRows = rows.map(row => ({
     period: row.period,
@@ -148,8 +145,8 @@ function inArrayIssuedStatuses(): SQL {
   return sql`${invoices.status} IN ('issued', 'partial', 'paid')`;
 }
 
-export function getPaymentsLedger(query: PaymentsLedgerQuery = {}): PaymentsLedger {
-  const parsed = paymentsLedgerQuerySchema.parse(query);
+export function getPaymentsLedger(query: unknown = {}): PaymentsLedger {
+  const parsed = paymentsLedgerQuerySchema.parse(query ?? {});
 
   const filters: SQL[] = [];
 
@@ -171,7 +168,7 @@ export function getPaymentsLedger(query: PaymentsLedgerQuery = {}): PaymentsLedg
 
   const whereClause = buildWhereClause(filters);
 
-  let selection = db
+  const baseSelection = db
     .select({
       id: payments.id,
       customerId: payments.customerId,
@@ -187,16 +184,16 @@ export function getPaymentsLedger(query: PaymentsLedgerQuery = {}): PaymentsLedg
     .leftJoin(customers, eq(customers.id, payments.customerId))
     .leftJoin(invoices, eq(invoices.id, payments.invoiceId));
 
-  if (whereClause) {
-    selection = selection.where(whereClause);
-  }
+  const filteredSelection = whereClause
+    ? baseSelection.where(whereClause)
+    : baseSelection;
 
-  selection =
+  const orderedSelection =
     parsed.direction === 'asc'
-      ? selection.orderBy(payments.paidAt, payments.id)
-      : selection.orderBy(desc(payments.paidAt), desc(payments.id));
+      ? filteredSelection.orderBy(payments.paidAt, payments.id)
+      : filteredSelection.orderBy(desc(payments.paidAt), desc(payments.id));
 
-  const rows = selection.all();
+  const rows = orderedSelection.all();
 
   const chronological = [...rows].sort((a, b) => new Date(a.paidAt).getTime() - new Date(b.paidAt).getTime());
   let runningTotal = 0;

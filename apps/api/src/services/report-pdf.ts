@@ -1,4 +1,4 @@
-import puppeteer, { Browser, LaunchOptions } from 'puppeteer';
+import puppeteer, { Browser, PuppeteerLaunchOptions } from 'puppeteer';
 import {
   type DuesReport,
   type PaymentsLedger,
@@ -18,19 +18,35 @@ interface ReportPdfRenderer {
 class PuppeteerReportPdfRenderer implements ReportPdfRenderer {
   private browserPromise: Promise<Browser> | null = null;
 
-  constructor(private readonly launchOptions: LaunchOptions = {}) {}
+  constructor(private readonly launchOptions: PuppeteerLaunchOptions = {}) {}
 
   private async getBrowser() {
     if (!this.browserPromise) {
-      const headless = (process.env.PUPPETEER_HEADLESS as LaunchOptions['headless']) ?? 'new';
+      const headlessEnv = process.env.PUPPETEER_HEADLESS?.toLowerCase();
+      const headless: PuppeteerLaunchOptions['headless'] | undefined =
+        headlessEnv === 'true' || headlessEnv === '1' || headlessEnv === 'new'
+          ? true
+          : headlessEnv === 'false' || headlessEnv === '0'
+            ? false
+            : headlessEnv === 'shell'
+              ? 'shell'
+              : undefined;
       const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
 
       this.browserPromise = puppeteer
         .launch({
-          headless,
-          executablePath: executablePath && executablePath.length > 0 ? executablePath : undefined,
-          args: ['--no-sandbox', '--font-render-hinting=medium', '--disable-dev-shm-usage'],
-          ...this.launchOptions
+          ...this.launchOptions,
+          headless: headless ?? this.launchOptions.headless ?? true,
+          executablePath:
+            executablePath && executablePath.length > 0
+              ? executablePath
+              : this.launchOptions.executablePath,
+          args: [
+            '--no-sandbox',
+            '--font-render-hinting=medium',
+            '--disable-dev-shm-usage',
+            ...(this.launchOptions.args ?? [])
+          ]
         })
         .catch(error => {
           this.browserPromise = null;

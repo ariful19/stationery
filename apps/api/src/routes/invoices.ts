@@ -214,7 +214,7 @@ router.post(
     const invoiceRecord = await fetchInvoiceById(id);
 
     if (!invoiceRecord) {
-      throw createNotFoundError('invoice', id);
+      throw createNotFoundError(`Invoice ${id} not found`);
     }
 
     const renderOptions = invoicePdfRequestSchema.parse(req.body ?? {});
@@ -315,12 +315,12 @@ router.get(
       ]
     });
 
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(invoices);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(invoices);
+    const filteredCountQuery = whereClause
+      ? baseCountQuery.where(whereClause)
+      : baseCountQuery;
 
-    const total = countQuery.get()?.count ?? rows.length;
+    const total = filteredCountQuery.get()?.count ?? rows.length;
 
     const payload = invoiceListResponseSchema.parse({
       data: rows.map(record => normalizeInvoice(record as InvoiceRow)),
