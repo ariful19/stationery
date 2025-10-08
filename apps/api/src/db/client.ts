@@ -4,7 +4,11 @@ import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import * as schema from './schema.js';
 
-const databaseUrl = process.env.DATABASE_URL ?? join(process.cwd(), 'stationery.sqlite');
+const explicitDbPath = process.env.DB_PATH;
+const databaseUrl =
+  (explicitDbPath && explicitDbPath.length > 0 ? explicitDbPath : null) ??
+  process.env.DATABASE_URL ??
+  join(process.cwd(), 'stationery.sqlite');
 const databaseDir = dirname(databaseUrl);
 
 mkdirSync(databaseDir, { recursive: true });
