@@ -1,3 +1,4 @@
+[![CI](https://github.com/ariful19/stationery/actions/workflows/ci.yml/badge.svg)](https://github.com/ariful19/stationery/actions/workflows/ci.yml)
 # Stationery Monorepo
 
 A modern stationery invoicing demo built as a pnpm workspace. The repository hosts a
