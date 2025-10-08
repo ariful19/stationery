@@ -132,6 +132,10 @@ pnpm test           # Vitest unit coverage across packages
 pnpm e2e            # Playwright suites (API + web)
 pnpm lint           # ESLint across the workspace
 pnpm format:check   # Prettier verification without writing files
+
+Playwright's web suite runs against the locally installed Google Chrome (`channel: 'chrome'`).
+Install Chrome first (for example, `sudo apt-get install google-chrome-stable` on Debian/Ubuntu) or
+adjust `apps/web/playwright.config.ts` to target a different browser if you prefer.
 ```
 
 Generate an HTML report for Playwright runs with `pnpm e2e` – results live under

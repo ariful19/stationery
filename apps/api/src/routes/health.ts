@@ -1,8 +1,7 @@
 import { healthCheckSchema } from '@stationery/shared';
-import { sql } from 'drizzle-orm';
 import { Router } from 'express';
 
-import { db, healthChecks } from '../db/client.js';
+import { sqlite } from '../db/client.js';
 import { ApiError } from '../errors.js';
 import { asyncHandler } from '../utils/async-handler.js';
 
@@ -14,9 +13,7 @@ router.get(
     let dbHealthy = true;
 
     try {
-      db.select({ count: sql<number>`count(*)` })
-        .from(healthChecks)
-        .get();
+      sqlite.prepare('select 1').get();
     } catch (error) {
       console.error('Health check database probe failed', error);
       dbHealthy = false;
