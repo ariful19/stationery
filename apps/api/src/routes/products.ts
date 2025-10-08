@@ -10,7 +10,9 @@ import { Router } from 'express';
 
 import { db, products } from '../db/client.js';
 import { ApiError, createNotFoundError } from '../errors.js';
+import { searchRateLimiter } from '../middleware/rate-limit.js';
 import { asyncHandler } from '../utils/async-handler.js';
+import { recordAuditEvent } from '../utils/audit.js';
 import { toIsoDateTime } from '../utils/datetime.js';
 
 const router = Router();
@@ -19,6 +21,7 @@ const toSearchTerm = (value: string) => `%${value}%`;
 
 router.get(
   '/',
+  searchRateLimiter,
   asyncHandler((req, res) => {
     const query = productListQuerySchema.parse(req.query);
     const term = query.query ? toSearchTerm(query.query) : undefined;
@@ -90,6 +93,7 @@ router.post(
     });
 
     res.status(201).json(payload);
+    recordAuditEvent(req, 'product.created', { productId: payload.id });
   }),
 );
 
@@ -148,6 +152,7 @@ router.put(
     });
 
     res.json(payload);
+    recordAuditEvent(req, 'product.updated', { productId: payload.id });
   }),
 );
 
@@ -164,6 +169,7 @@ router.delete(
     }
 
     res.status(204).send();
+    recordAuditEvent(req, 'product.deleted', { productId: parsedId });
   }),
 );
 
