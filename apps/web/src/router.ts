@@ -4,6 +4,7 @@ import './pages/dashboard-page.js';
 import './pages/customers-page.js';
 import './pages/products-page.js';
 import './pages/invoice-editor-page.js';
+import './pages/invoices-page.js';
 import './pages/payments-page.js';
 import './pages/reports-page.js';
 
@@ -43,6 +44,14 @@ export const navigationRoutes: NavigationRoute[] = [
     description: 'Browse and edit your catalog',
     includeInSidebar: true,
     render: () => html`<products-page></products-page>`,
+  },
+  {
+    path: '/invoices',
+    label: 'Invoices',
+    icon: '📄',
+    description: 'Search, filter, and review invoices',
+    includeInSidebar: true,
+    render: () => html`<invoices-page></invoices-page>`,
   },
   {
     path: '/invoices/new',
