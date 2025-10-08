@@ -42,7 +42,7 @@ import {
   type SalesReport,
   type SalesReportQuery,
   type PaymentsLedger,
-  type PaymentsLedgerQuery
+  type PaymentsLedgerQuery,
 } from '@stationery/shared';
 import { z } from 'zod';
 
@@ -92,7 +92,10 @@ const parseResponse = async <T>(response: Response, schema: z.ZodType<T> | null)
   return schema.parse(data);
 };
 
-const request = async <T>(path: string, options: RequestInit & { query?: Query; schema?: z.ZodType<T> | null }) => {
+const request = async <T>(
+  path: string,
+  options: RequestInit & { query?: Query; schema?: z.ZodType<T> | null },
+) => {
   const { query, schema = null, ...init } = options;
   const url = buildUrl(path, query);
   const response = await fetch(url, init);
@@ -114,7 +117,7 @@ export const fetchCustomers = async (query: CustomerListQuery = {}) =>
   request<CustomerListResponse>('/customers', {
     method: 'GET',
     query: customerListQuerySchema.parse(query),
-    schema: customerListResponseSchema
+    schema: customerListResponseSchema,
   });
 
 export const createCustomer = async (input: CustomerCreateInput) =>
@@ -122,20 +125,20 @@ export const createCustomer = async (input: CustomerCreateInput) =>
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(customerCreateSchema.parse(input)),
-    schema: customerSchema
+    schema: customerSchema,
   });
 
 export const fetchCustomer = async (id: number) =>
   request<Customer>(`/customers/${id}`, {
     method: 'GET',
-    schema: customerSchema
+    schema: customerSchema,
   });
 
 export const fetchProducts = async (query: ProductListQuery = {}) =>
   request<ProductListResponse>('/products', {
     method: 'GET',
     query: productListQuerySchema.parse(query),
-    schema: productListResponseSchema
+    schema: productListResponseSchema,
   });
 
 export const createProduct = async (input: ProductCreateInput) =>
@@ -143,7 +146,7 @@ export const createProduct = async (input: ProductCreateInput) =>
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(productCreateSchema.parse(input)),
-    schema: productSchema
+    schema: productSchema,
   });
 
 export const createInvoice = async (input: InvoiceCreateInput) =>
@@ -151,20 +154,20 @@ export const createInvoice = async (input: InvoiceCreateInput) =>
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(invoiceCreateSchema.parse(input)),
-    schema: invoiceSchema
+    schema: invoiceSchema,
   });
 
 export const fetchInvoice = async (id: number) =>
   request<Invoice>(`/invoices/${id}`, {
     method: 'GET',
-    schema: invoiceSchema
+    schema: invoiceSchema,
   });
 
 export const fetchInvoices = async (query: InvoiceListQuery = {}) =>
   request<InvoiceListResponse>('/invoices', {
     method: 'GET',
     query: invoiceListQuerySchema.parse(query),
-    schema: invoiceListResponseSchema
+    schema: invoiceListResponseSchema,
   });
 
 export const createPayment = async (input: PaymentCreateInput) =>
@@ -172,35 +175,35 @@ export const createPayment = async (input: PaymentCreateInput) =>
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(paymentCreateSchema.parse(input)),
-    schema: paymentSchema
+    schema: paymentSchema,
   });
 
 export const fetchPayments = async (query: PaymentListQuery = {}) =>
   request<PaymentListResponse>('/payments', {
     method: 'GET',
     query: paymentListQuerySchema.parse(query),
-    schema: paymentListResponseSchema
+    schema: paymentListResponseSchema,
   });
 
 export const fetchDuesReport = async (query: DuesReportQuery = {}) =>
   request<DuesReport>('/reports/dues', {
     method: 'GET',
     query: duesReportQuerySchema.parse(query),
-    schema: duesReportSchema
+    schema: duesReportSchema,
   });
 
 export const fetchSalesReport = async (query: SalesReportQuery) =>
   request<SalesReport>('/reports/sales', {
     method: 'GET',
     query: salesReportQuerySchema.parse(query),
-    schema: salesReportSchema
+    schema: salesReportSchema,
   });
 
 export const fetchPaymentsLedger = async (query: PaymentsLedgerQuery = {}) =>
   request<PaymentsLedger>('/reports/payments', {
     method: 'GET',
     query: paymentsLedgerQuerySchema.parse(query),
-    schema: paymentsLedgerSchema
+    schema: paymentsLedgerSchema,
   });
 
 const downloadReport = async (path: string, query?: Record<string, unknown>) => {
@@ -208,8 +211,8 @@ const downloadReport = async (path: string, query?: Record<string, unknown>) => 
     ? (Object.fromEntries(
         Object.entries(query).map(([key, value]) => [
           key,
-          value as string | number | boolean | undefined | null
-        ])
+          value as string | number | boolean | undefined | null,
+        ]),
       ) as Query)
     : undefined;
   const url = buildUrl(path, normalizedQuery);
@@ -242,7 +245,7 @@ export const requestInvoicePdf = async (invoiceId: number, payload?: Record<stri
   const response = await fetch(buildUrl(`/invoices/${invoiceId}/pdf`), {
     method: 'POST',
     headers: jsonHeaders,
-    body: JSON.stringify(payload ?? {})
+    body: JSON.stringify(payload ?? {}),
   });
 
   if (!response.ok) {
@@ -270,5 +273,5 @@ export type {
   SalesReport,
   SalesReportQuery,
   PaymentsLedger,
-  PaymentsLedgerQuery
+  PaymentsLedgerQuery,
 };

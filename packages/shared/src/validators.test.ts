@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { dateTimeStringSchema, idSchema, listQuerySchema } from './common.js';
 import { customerCreateSchema, customerUpdateSchema } from './customers.js';
 import { invoiceCreateSchema, invoicePdfRequestSchema } from './invoices.js';
@@ -28,7 +29,12 @@ describe('shared validators', () => {
 
   it('enforces customer and product update rules', () => {
     expect(() =>
-      customerCreateSchema.parse({ name: 'Test', email: 'user@test.dev', phone: 'invalid', address: '1' })
+      customerCreateSchema.parse({
+        name: 'Test',
+        email: 'user@test.dev',
+        phone: 'invalid',
+        address: '1',
+      }),
     ).toThrow();
     expect(customerUpdateSchema.safeParse({}).success).toBe(false);
     expect(productUpdateSchema.safeParse({}).success).toBe(false);
@@ -36,14 +42,14 @@ describe('shared validators', () => {
 
   it('requires invoices to include at least one item', () => {
     expect(() =>
-      invoiceCreateSchema.parse({ customerId: 1, items: [], status: 'issued' })
+      invoiceCreateSchema.parse({ customerId: 1, items: [], status: 'issued' }),
     ).toThrowError(/at least 1 element/);
   });
 
   it('normalizes invoice pdf request branding and currency', () => {
     const parsed = invoicePdfRequestSchema.parse({
       currency: 'eur',
-      brand: { companyAddress: 'Line A', footerLines: ['Thanks'] }
+      brand: { companyAddress: 'Line A', footerLines: ['Thanks'] },
     });
     expect(parsed.currency).toBe('EUR');
     expect(parsed.brand?.companyAddress).toEqual(['Line A']);
@@ -53,7 +59,9 @@ describe('shared validators', () => {
   it('permits optional paidAt while enforcing payment constraints', () => {
     const parsed = paymentCreateSchema.parse({ customerId: 1, amountCents: 1500, method: 'cash' });
     expect(parsed.paidAt).toBeUndefined();
-    expect(() => paymentCreateSchema.parse({ customerId: 1, amountCents: 0, method: 'cash' })).toThrow();
+    expect(() =>
+      paymentCreateSchema.parse({ customerId: 1, amountCents: 0, method: 'cash' }),
+    ).toThrow();
 
     const list = paymentListQuerySchema.parse({ from: '2024-01-01', to: '2024-01-31' });
     expect(list.direction).toBe('desc');

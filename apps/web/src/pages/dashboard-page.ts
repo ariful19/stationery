@@ -7,7 +7,7 @@ import {
   fetchSalesReport,
   type CustomerListResponse,
   type DuesReport,
-  type SalesReport
+  type SalesReport,
 } from '../api/client.js';
 import { formatCurrency, formatDate } from '../utils/format.js';
 
@@ -127,7 +127,7 @@ export class DashboardPage extends LitElement {
       const [dues, sales, customers] = await Promise.all([
         fetchDuesReport(),
         fetchSalesReport({ groupBy: 'month' }),
-        fetchCustomers({ limit: 5, sort: 'createdAt' })
+        fetchCustomers({ limit: 5, sort: 'createdAt' }),
       ]);
       this.duesReport = dues;
       this.salesReport = sales;
@@ -155,32 +155,32 @@ export class DashboardPage extends LitElement {
       this.salesChart = new Chart(salesCanvas, {
         type: 'line',
         data: {
-          labels: this.salesReport.rows.map(row => row.period),
+          labels: this.salesReport.rows.map((row) => row.period),
           datasets: [
             {
               label: 'Sales',
-              data: this.salesReport.rows.map(row => row.totalCents / 100),
+              data: this.salesReport.rows.map((row) => row.totalCents / 100),
               borderColor: '#2563eb',
               backgroundColor: 'rgba(37, 99, 235, 0.25)',
               tension: 0.35,
               fill: true,
-              pointRadius: 4
-            }
-          ]
+              pointRadius: 4,
+            },
+          ],
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
           },
           scales: {
             y: {
               ticks: {
-                callback: value => `$${value}`
-              }
-            }
-          }
-        }
+                callback: (value) => `$${value}`,
+              },
+            },
+          },
+        },
       });
     }
 
@@ -193,21 +193,21 @@ export class DashboardPage extends LitElement {
       this.duesChart = new Chart(duesCanvas, {
         type: 'doughnut',
         data: {
-          labels: top.map(item => item.customerName),
+          labels: top.map((item) => item.customerName),
           datasets: [
             {
               label: 'Outstanding',
-              data: top.map(item => item.balanceCents / 100),
+              data: top.map((item) => item.balanceCents / 100),
               backgroundColor: ['#2563eb', '#7c3aed', '#f97316', '#ef4444', '#10b981', '#0ea5e9'],
-              borderWidth: 0
-            }
-          ]
+              borderWidth: 0,
+            },
+          ],
         },
         options: {
           plugins: {
-            legend: { position: 'bottom' as const }
-          }
-        }
+            legend: { position: 'bottom' as const },
+          },
+        },
       });
     }
   }
@@ -276,14 +276,19 @@ export class DashboardPage extends LitElement {
                 </tr>
               </thead>
               <tbody>
-                ${this.latestCustomers.map(customer => html`<tr>
-                    <td>${customer.name}</td>
-                    <td>${customer.email ?? '—'}</td>
-                    <td>${formatDate(customer.createdAt, undefined, { dateStyle: 'medium' })}</td>
-                  </tr>`)}
+                ${this.latestCustomers.map(
+                  (customer) =>
+                    html`<tr>
+                      <td>${customer.name}</td>
+                      <td>${customer.email ?? '—'}</td>
+                      <td>${formatDate(customer.createdAt, undefined, { dateStyle: 'medium' })}</td>
+                    </tr>`,
+                )}
               </tbody>
             </table>`
-          : html`<div class="loading">No customers yet. Add your first customer to get started.</div>`}
+          : html`<div class="loading">
+              No customers yet. Add your first customer to get started.
+            </div>`}
       </section>
     `;
   }

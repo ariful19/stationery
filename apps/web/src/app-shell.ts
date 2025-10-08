@@ -62,8 +62,11 @@ export class AppShell extends LitElement {
       text-align: left;
       font-size: 0.95rem;
       color: var(--color-text-subtle);
-      transition: transform var(--transition-snappy), border-color var(--transition-snappy),
-        background var(--transition-snappy), color var(--transition-snappy);
+      transition:
+        transform var(--transition-snappy),
+        border-color var(--transition-snappy),
+        background var(--transition-snappy),
+        color var(--transition-snappy);
     }
 
     nav button span.icon {
@@ -257,7 +260,8 @@ export class AppShell extends LitElement {
   });
 
   @state()
-  private currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  private currentPath =
+    `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
   @state()
   private sidebarOpen = false;
@@ -273,7 +277,10 @@ export class AppShell extends LitElement {
   }
 
   private get currentRoute(): NavigationRoute {
-    return navigationRoutes.find(route => isRouteActive(route, this.currentPath)) ?? navigationRoutes[0];
+    return (
+      navigationRoutes.find((route) => isRouteActive(route, this.currentPath)) ??
+      navigationRoutes[0]
+    );
   }
 
   private handleNavClick(route: NavigationRoute) {
@@ -307,16 +314,19 @@ export class AppShell extends LitElement {
   };
 
   protected render() {
-    const sidebarRoutes = navigationRoutes.filter(route => route.includeInSidebar);
+    const sidebarRoutes = navigationRoutes.filter((route) => route.includeInSidebar);
     const route = this.currentRoute;
 
     return html`
       <div class="layout">
-        <div class="backdrop ${this.sidebarOpen ? 'visible' : ''}" @click=${this.handleBackdropClick}></div>
+        <div
+          class="backdrop ${this.sidebarOpen ? 'visible' : ''}"
+          @click=${this.handleBackdropClick}
+        ></div>
         <nav class=${this.sidebarOpen ? 'open' : ''}>
           <h1>Stationery HQ</h1>
           <ul role="list">
-            ${sidebarRoutes.map(nav => {
+            ${sidebarRoutes.map((nav) => {
               const active = isRouteActive(nav, this.currentPath);
               return html`
                 <li>
@@ -341,20 +351,37 @@ export class AppShell extends LitElement {
           <header>
             <div class="header-meta">
               <div>
-                <button class="menu-toggle" @click=${this.toggleSidebar} aria-label="Toggle navigation">☰</button>
+                <button
+                  class="menu-toggle"
+                  @click=${this.toggleSidebar}
+                  aria-label="Toggle navigation"
+                >
+                  ☰
+                </button>
                 <h2>${route.label}</h2>
               </div>
               <p>${route.description}</p>
             </div>
             <div class="header-actions">
-              <button type="button" @click=${() => this.router.navigate('/invoices/new')}>New invoice</button>
-              <button type="button" class="primary" @click=${() => this.router.navigate('/customers')}>
+              <button type="button" @click=${() => this.router.navigate('/invoices/new')}>
+                New invoice
+              </button>
+              <button
+                type="button"
+                class="primary"
+                @click=${() => this.router.navigate('/customers')}
+              >
                 Add customer
               </button>
             </div>
           </header>
           <section class="content">
-            <div class="content-inner" role="region" aria-live="polite" @navigate=${this.handleNavigate}>
+            <div
+              class="content-inner"
+              role="region"
+              aria-live="polite"
+              @navigate=${this.handleNavigate}
+            >
               ${this.router.render()}
             </div>
           </section>

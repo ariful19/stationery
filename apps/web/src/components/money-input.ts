@@ -33,7 +33,9 @@ export class MoneyInput extends LitElement {
       padding: calc(var(--space-sm) + 1px) calc(var(--space-lg) + 0.5rem);
       font-size: 1rem;
       color: var(--color-text);
-      transition: border-color var(--transition-snappy), box-shadow var(--transition-snappy);
+      transition:
+        border-color var(--transition-snappy),
+        box-shadow var(--transition-snappy);
     }
 
     input:focus-visible {
@@ -110,8 +112,8 @@ export class MoneyInput extends LitElement {
       new CustomEvent('value-change', {
         detail: { value: cents },
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   };
 

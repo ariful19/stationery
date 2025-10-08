@@ -6,7 +6,7 @@ import {
   fetchProducts,
   type Customer,
   type CustomerListResponse,
-  type Invoice
+  type Invoice,
 } from '../api/client.js';
 import '../components/invoice-form.js';
 import '../components/pdf-preview.js';
@@ -122,7 +122,7 @@ export class InvoiceEditorPage extends LitElement {
 
   protected updated(changed: Map<string, unknown>): void {
     if (changed.has('prefillCustomerId') && this.prefillCustomerId) {
-      const found = this.customers.find(customer => customer.id === this.prefillCustomerId);
+      const found = this.customers.find((customer) => customer.id === this.prefillCustomerId);
       if (found) {
         this.selectedCustomer = found;
       }
@@ -134,13 +134,15 @@ export class InvoiceEditorPage extends LitElement {
     try {
       const [customerResponse, productResponse] = await Promise.all([
         fetchCustomers({ limit: 100, sort: 'name', direction: 'asc' }),
-        fetchProducts({ limit: 100, sort: 'name', direction: 'asc' })
+        fetchProducts({ limit: 100, sort: 'name', direction: 'asc' }),
       ]);
       this.customers = customerResponse.data;
       this.customerPagination = customerResponse.pagination;
       this.products = productResponse.data;
       if (!this.selectedCustomer && this.prefillCustomerId) {
-        this.selectedCustomer = this.customers.find(customer => customer.id === this.prefillCustomerId);
+        this.selectedCustomer = this.customers.find(
+          (customer) => customer.id === this.prefillCustomerId,
+        );
       }
       if (!this.selectedCustomer && this.customers.length) {
         this.selectedCustomer = this.customers[0];
@@ -166,8 +168,8 @@ export class InvoiceEditorPage extends LitElement {
         new CustomEvent('toast', {
           detail: { message: 'Invoice created successfully', type: 'success' },
           bubbles: true,
-          composed: true
-        })
+          composed: true,
+        }),
       );
     } catch (error) {
       console.error('Failed to create invoice', error);
@@ -182,8 +184,8 @@ export class InvoiceEditorPage extends LitElement {
       new CustomEvent('navigate', {
         detail: `/payments?invoice=${this.lastInvoice.id}`,
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   }
 
@@ -193,8 +195,8 @@ export class InvoiceEditorPage extends LitElement {
       new CustomEvent('navigate', {
         detail: `/reports?invoice=${this.lastInvoice.id}`,
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   }
 

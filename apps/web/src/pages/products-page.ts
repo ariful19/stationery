@@ -5,7 +5,7 @@ import {
   fetchProducts,
   type Product,
   type ProductCreateInput,
-  type ProductListResponse
+  type ProductListResponse,
 } from '../api/client.js';
 import { formatCurrency, formatDate } from '../utils/format.js';
 
@@ -141,7 +141,7 @@ export class ProductsPage extends LitElement {
       name: String(formData.get('name') ?? '').trim(),
       description: (formData.get('description') as string | null)?.trim() || undefined,
       unitPriceCents: Number.isNaN(price) ? 0 : price,
-      stockQty: Number.isNaN(stock) ? 0 : Math.max(0, stock)
+      stockQty: Number.isNaN(stock) ? 0 : Math.max(0, stock),
     };
 
     if (!payload.sku || !payload.name) return;
@@ -150,17 +150,17 @@ export class ProductsPage extends LitElement {
     const optimistic: Product = {
       id: Date.now() * -1,
       ...payload,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
     this.products = [optimistic, ...this.products];
     form.reset();
 
     try {
       const created = await createProduct(payload);
-      this.products = [created, ...this.products.filter(product => product.id !== optimistic.id)];
+      this.products = [created, ...this.products.filter((product) => product.id !== optimistic.id)];
     } catch (error) {
       console.error('Failed to create product', error);
-      this.products = this.products.filter(product => product.id !== optimistic.id);
+      this.products = this.products.filter((product) => product.id !== optimistic.id);
     } finally {
       this.creating = false;
     }
@@ -191,7 +191,9 @@ export class ProductsPage extends LitElement {
             <span>Stock quantity</span>
             <input name="stockQty" type="number" min="0" step="1" required />
           </label>
-          <button type="submit" ?disabled=${this.creating}>${this.creating ? 'Saving…' : 'Save product'}</button>
+          <button type="submit" ?disabled=${this.creating}>
+            ${this.creating ? 'Saving…' : 'Save product'}
+          </button>
         </form>
         <div>
           <table>
@@ -206,13 +208,14 @@ export class ProductsPage extends LitElement {
             </thead>
             <tbody>
               ${this.products.map(
-                product => html`<tr>
-                  <td>${product.sku}</td>
-                  <td>${product.name}</td>
-                  <td>${formatCurrency(product.unitPriceCents)}</td>
-                  <td>${product.stockQty}</td>
-                  <td>${formatDate(product.createdAt, undefined, { dateStyle: 'medium' })}</td>
-                </tr>`
+                (product) =>
+                  html`<tr>
+                    <td>${product.sku}</td>
+                    <td>${product.name}</td>
+                    <td>${formatCurrency(product.unitPriceCents)}</td>
+                    <td>${product.stockQty}</td>
+                    <td>${formatDate(product.createdAt, undefined, { dateStyle: 'medium' })}</td>
+                  </tr>`,
               )}
             </tbody>
           </table>

@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exampleDuesReport } from '@stationery/shared';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const closeMock = vi.fn();
 const pageCloseMock = vi.fn();
@@ -7,24 +7,24 @@ const pageCloseMock = vi.fn();
 vi.mock('../templates/reports/render.js', () => ({
   renderDuesReportHtml: vi.fn(() => '<html>Dues</html>'),
   renderSalesReportHtml: vi.fn(() => '<html>Sales</html>'),
-  renderPaymentsLedgerHtml: vi.fn(() => '<html>Ledger</html>')
+  renderPaymentsLedgerHtml: vi.fn(() => '<html>Ledger</html>'),
 }));
 
 vi.mock('puppeteer', () => {
   const page = {
     setContent: vi.fn(async () => {}),
     emulateMediaType: vi.fn(async () => {}),
-    pdf: vi.fn(async () => Buffer.from('%PDF-report')), 
-    close: pageCloseMock
+    pdf: vi.fn(async () => Buffer.from('%PDF-report')),
+    close: pageCloseMock,
   };
   const browser = {
     newPage: vi.fn(async () => page),
-    close: closeMock
+    close: closeMock,
   };
   const launcher = vi.fn(async () => browser);
   return {
     default: { launch: launcher },
-    launch: launcher
+    launch: launcher,
   };
 });
 

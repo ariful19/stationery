@@ -1,14 +1,15 @@
-import { Router } from 'express';
-import { desc, eq, like, or, sql } from 'drizzle-orm';
 import {
   productCreateSchema,
   productListQuerySchema,
   productListResponseSchema,
   productSchema,
-  productUpdateSchema
+  productUpdateSchema,
 } from '@stationery/shared';
-import { ApiError, createNotFoundError } from '../errors.js';
+import { desc, eq, like, or, sql } from 'drizzle-orm';
+import { Router } from 'express';
+
 import { db, products } from '../db/client.js';
+import { ApiError, createNotFoundError } from '../errors.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { toIsoDateTime } from '../utils/datetime.js';
 
@@ -27,12 +28,14 @@ router.get(
       : undefined;
 
     const orderColumn =
-      query.sort === 'name' ? products.name : query.sort === 'sku' ? products.sku : products.createdAt;
+      query.sort === 'name'
+        ? products.name
+        : query.sort === 'sku'
+          ? products.sku
+          : products.createdAt;
 
     const baseSelection = db.select().from(products);
-    const filteredSelection = whereClause
-      ? baseSelection.where(whereClause)
-      : baseSelection;
+    const filteredSelection = whereClause ? baseSelection.where(whereClause) : baseSelection;
 
     const orderedSelection =
       query.direction === 'asc'
@@ -42,26 +45,24 @@ router.get(
     const rows = orderedSelection.limit(query.limit).offset(query.offset).all();
 
     const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(products);
-    const filteredCountQuery = whereClause
-      ? baseCountQuery.where(whereClause)
-      : baseCountQuery;
+    const filteredCountQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
 
     const total = filteredCountQuery.get()?.count ?? rows.length;
 
     const payload = productListResponseSchema.parse({
-      data: rows.map(row => ({
+      data: rows.map((row) => ({
         ...row,
-        createdAt: toIsoDateTime(row.createdAt)
+        createdAt: toIsoDateTime(row.createdAt),
       })),
       pagination: {
         total,
         limit: query.limit,
-        offset: query.offset
-      }
+        offset: query.offset,
+      },
     });
 
     res.json(payload);
-  })
+  }),
 );
 
 router.post(
@@ -69,18 +70,14 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = productCreateSchema.parse(req.body);
 
-    const inserted = db
-      .insert(products)
-      .values(body)
-      .returning({ id: products.id })
-      .get();
+    const inserted = db.insert(products).values(body).returning({ id: products.id }).get();
 
     if (!inserted?.id) {
       throw new ApiError(500, 'insert_failed', 'Failed to create product');
     }
 
     const created = await db.query.products.findFirst({
-      where: eq(products.id, inserted.id)
+      where: eq(products.id, inserted.id),
     });
 
     if (!created) {
@@ -89,11 +86,11 @@ router.post(
 
     const payload = productSchema.parse({
       ...created,
-      createdAt: toIsoDateTime(created.createdAt)
+      createdAt: toIsoDateTime(created.createdAt),
     });
 
     res.status(201).json(payload);
-  })
+  }),
 );
 
 router.get(
@@ -103,7 +100,7 @@ router.get(
     const parsedId = productSchema.shape.id.parse(id);
 
     const row = await db.query.products.findFirst({
-      where: eq(products.id, parsedId)
+      where: eq(products.id, parsedId),
     });
 
     if (!row) {
@@ -112,11 +109,11 @@ router.get(
 
     const payload = productSchema.parse({
       ...row,
-      createdAt: toIsoDateTime(row.createdAt)
+      createdAt: toIsoDateTime(row.createdAt),
     });
 
     res.json(payload);
-  })
+  }),
 );
 
 router.put(
@@ -138,7 +135,7 @@ router.put(
     }
 
     const fresh = await db.query.products.findFirst({
-      where: eq(products.id, parsedId)
+      where: eq(products.id, parsedId),
     });
 
     if (!fresh) {
@@ -147,11 +144,11 @@ router.put(
 
     const payload = productSchema.parse({
       ...fresh,
-      createdAt: toIsoDateTime(fresh.createdAt)
+      createdAt: toIsoDateTime(fresh.createdAt),
     });
 
     res.json(payload);
-  })
+  }),
 );
 
 router.delete(
@@ -167,7 +164,7 @@ router.delete(
     }
 
     res.status(204).send();
-  })
+  }),
 );
 
 export { router as productsRouter };

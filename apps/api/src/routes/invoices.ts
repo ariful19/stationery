@@ -1,35 +1,27 @@
-import { Router } from 'express';
-import type { SQL } from 'drizzle-orm';
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   buildInvoiceNumber,
   calculateInvoiceTotals,
   invoiceCreateSchema,
   invoiceListQuerySchema,
   invoiceListResponseSchema,
+  type InvoiceNumberConfig,
+  invoicePdfRequestSchema,
   invoiceSchema,
   invoiceStatusSchema,
-  invoicePdfRequestSchema,
   resolveInvoiceSeriesKey,
-  type InvoiceNumberConfig,
-  type RoundingMode
+  type RoundingMode,
 } from '@stationery/shared';
+import type { SQL } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { Router } from 'express';
+
+import { customers, db, invoiceItems, invoices, payments, products } from '../db/client.js';
 import { ApiError, createNotFoundError } from '../errors.js';
-import {
-  customers,
-  db,
-  invoiceItems,
-  invoices,
-  payments,
-  products
-} from '../db/client.js';
+import { getInvoicePdfRenderer } from '../services/invoice-pdf.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { toIsoDateTime } from '../utils/datetime.js';
-import { getInvoicePdfRenderer } from '../services/invoice-pdf.js';
 import { maybePreviewPdf, sendPdfBuffer } from '../utils/pdf.js';
-import type {
-  InferSelectModel
-} from 'drizzle-orm';
 
 const router = Router();
 
@@ -41,13 +33,12 @@ const roundingModes: RoundingMode[] = [
   'HALF_EVEN',
   'CEIL',
   'FLOOR',
-  'TRUNCATE'
+  'TRUNCATE',
 ];
 
 const envRoundingMode = process.env.BILLING_ROUNDING_MODE as RoundingMode | undefined;
-const roundingMode = envRoundingMode && roundingModes.includes(envRoundingMode)
-  ? envRoundingMode
-  : 'HALF_EVEN';
+const roundingMode =
+  envRoundingMode && roundingModes.includes(envRoundingMode) ? envRoundingMode : 'HALF_EVEN';
 
 const invoiceRoundingConfig = { decimals: 0, mode: roundingMode } as const;
 
@@ -55,7 +46,7 @@ const parsedSequencePadding = Number.parseInt(process.env.INVOICE_SEQUENCE_PADDI
 
 const invoiceNumberConfig: InvoiceNumberConfig = {
   prefix: process.env.INVOICE_PREFIX ?? 'INV',
-  sequencePadding: Number.isFinite(parsedSequencePadding) ? parsedSequencePadding : undefined
+  sequencePadding: Number.isFinite(parsedSequencePadding) ? parsedSequencePadding : undefined,
 };
 
 type InvoiceRow = InferSelectModel<typeof invoices> & {
@@ -72,18 +63,18 @@ const normalizeInvoice = (invoice: InvoiceRow) =>
     customer: invoice.customer
       ? {
           ...invoice.customer,
-          createdAt: normalizeIso(invoice.customer.createdAt)
+          createdAt: normalizeIso(invoice.customer.createdAt),
         }
       : undefined,
-    items: (invoice.items ?? []).map(item => ({
+    items: (invoice.items ?? []).map((item) => ({
       ...item,
-      description: item.description ?? null
+      description: item.description ?? null,
     })),
-    payments: (invoice.payments ?? []).map(payment => ({
+    payments: (invoice.payments ?? []).map((payment) => ({
       ...payment,
       note: payment.note ?? undefined,
-      paidAt: normalizeIso(payment.paidAt)
-    }))
+      paidAt: normalizeIso(payment.paidAt),
+    })),
   });
 
 const fetchInvoiceById = (id: number) =>
@@ -92,8 +83,8 @@ const fetchInvoiceById = (id: number) =>
     with: {
       customer: true,
       items: true,
-      payments: true
-    }
+      payments: true,
+    },
   });
 
 router.post(
@@ -102,14 +93,14 @@ router.post(
     const payload = invoiceCreateSchema.parse(req.body);
 
     const customer = await db.query.customers.findFirst({
-      where: eq(customers.id, payload.customerId)
+      where: eq(customers.id, payload.customerId),
     });
 
     if (!customer) {
       throw new ApiError(400, 'invalid_customer', 'Customer does not exist');
     }
 
-    const productIds = Array.from(new Set(payload.items.map(item => item.productId)));
+    const productIds = Array.from(new Set(payload.items.map((item) => item.productId)));
     const dbProducts = productIds.length
       ? db.select().from(products).where(inArray(products.id, productIds)).all()
       : [];
@@ -120,16 +111,16 @@ router.post(
 
     const totals = calculateInvoiceTotals(
       {
-        items: payload.items.map(item => ({
+        items: payload.items.map((item) => ({
           productId: item.productId,
           description: item.description,
           quantity: item.quantity,
-          unitPriceCents: item.unitPriceCents
+          unitPriceCents: item.unitPriceCents,
         })),
         discountCents: payload.discountCents,
-        taxCents: payload.taxCents
+        taxCents: payload.taxCents,
       },
-      invoiceRoundingConfig
+      invoiceRoundingConfig,
     );
 
     const issueDateIso = payload.issueDate ?? new Date().toISOString();
@@ -153,7 +144,7 @@ router.post(
         return buildInvoiceNumber(nextSequence, issueDate, invoiceNumberConfig);
       })();
 
-    const insertedId = db.transaction(tx => {
+    const insertedId = db.transaction((tx) => {
       const insertedInvoice = tx
         .insert(invoices)
         .values({
@@ -165,7 +156,7 @@ router.post(
           taxCents: totals.taxCents,
           grandTotalCents: totals.grandTotalCents,
           status: payload.status ?? invoiceStatusSchema.enum.draft,
-          notes: payload.notes ?? null
+          notes: payload.notes ?? null,
         })
         .returning({ id: invoices.id })
         .get();
@@ -176,14 +167,14 @@ router.post(
 
       tx.insert(invoiceItems)
         .values(
-          totals.items.map(item => ({
+          totals.items.map((item) => ({
             invoiceId: insertedInvoice.id,
             productId: item.productId,
             description: item.description,
             quantity: item.quantity,
             unitPriceCents: item.unitPriceCents,
-            lineTotalCents: item.lineTotalCents
-          }))
+            lineTotalCents: item.lineTotalCents,
+          })),
         )
         .run();
 
@@ -199,7 +190,7 @@ router.post(
     const payloadResponse = normalizeInvoice(record as InvoiceRow);
 
     res.status(201).json(payloadResponse);
-  })
+  }),
 );
 
 router.post(
@@ -227,7 +218,7 @@ router.post(
       currency: renderOptions.currency,
       timezone: renderOptions.timezone,
       direction: renderOptions.direction,
-      brand: renderOptions.brand
+      brand: renderOptions.brand,
     });
 
     const previewPath = await maybePreviewPdf(pdfBuffer, normalizedInvoice.invoiceNo);
@@ -239,7 +230,7 @@ router.post(
     const filename = `${safeNumber || `INV-${normalizedInvoice.id}`}.pdf`;
     res.status(200);
     sendPdfBuffer(res, pdfBuffer, { filename });
-  })
+  }),
 );
 
 router.get(
@@ -256,7 +247,7 @@ router.get(
 
     const payloadResponse = normalizeInvoice(record as InvoiceRow);
     res.json(payloadResponse);
-  })
+  }),
 );
 
 router.get(
@@ -304,35 +295,33 @@ router.get(
       with: {
         customer: true,
         items: true,
-        payments: true
+        payments: true,
       },
       limit: query.limit,
       offset: query.offset,
-      orderBy: fields => [
+      orderBy: (fields) => [
         query.direction === 'asc'
           ? fields[query.sort === 'invoiceNo' ? 'invoiceNo' : 'issueDate']
-          : desc(fields[query.sort === 'invoiceNo' ? 'invoiceNo' : 'issueDate'])
-      ]
+          : desc(fields[query.sort === 'invoiceNo' ? 'invoiceNo' : 'issueDate']),
+      ],
     });
 
     const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(invoices);
-    const filteredCountQuery = whereClause
-      ? baseCountQuery.where(whereClause)
-      : baseCountQuery;
+    const filteredCountQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
 
     const total = filteredCountQuery.get()?.count ?? rows.length;
 
     const payload = invoiceListResponseSchema.parse({
-      data: rows.map(record => normalizeInvoice(record as InvoiceRow)),
+      data: rows.map((record) => normalizeInvoice(record as InvoiceRow)),
       pagination: {
         total,
         limit: query.limit,
-        offset: query.offset
-      }
+        offset: query.offset,
+      },
     });
 
     res.json(payload);
-  })
+  }),
 );
 
 export { router as invoicesRouter };

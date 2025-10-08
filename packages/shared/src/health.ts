@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { dateTimeStringSchema } from './common.js';
 
 export const healthCheckSchema = z.object({
@@ -10,9 +11,9 @@ export const healthCheckSchema = z.object({
     z.object({
       name: z.string().min(1),
       status: z.enum(['pass', 'fail']),
-      message: z.string().optional()
-    })
-  )
+      message: z.string().optional(),
+    }),
+  ),
 });
 
 export type HealthCheck = z.infer<typeof healthCheckSchema>;
@@ -25,7 +26,7 @@ export const healthCheckExample: HealthCheck = {
   checks: [
     {
       name: 'database',
-      status: 'pass'
-    }
-  ]
+      status: 'pass',
+    },
+  ],
 };

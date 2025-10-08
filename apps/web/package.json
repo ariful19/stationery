@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.{ts,js,css,html}\""
+    "format": "prettier --write \"src/**/*.{ts,js,css,html}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,css,html}\""
   },
   "dependencies": {
     "lit": "3.1.2",

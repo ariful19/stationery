@@ -1,14 +1,15 @@
-import { Router } from 'express';
-import type { SQL } from 'drizzle-orm';
-import { and, desc, eq, sql } from 'drizzle-orm';
 import {
   paymentCreateSchema,
   paymentListQuerySchema,
   paymentListResponseSchema,
-  paymentSchema
+  paymentSchema,
 } from '@stationery/shared';
-import { ApiError, createNotFoundError } from '../errors.js';
+import type { SQL } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { Router } from 'express';
+
 import { customers, db, invoices, payments } from '../db/client.js';
+import { ApiError, createNotFoundError } from '../errors.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { toIsoDateTime } from '../utils/datetime.js';
 
@@ -18,7 +19,7 @@ const normalizePayment = (payment: typeof payments.$inferSelect) =>
   paymentSchema.parse({
     ...payment,
     note: payment.note ?? undefined,
-    paidAt: toIsoDateTime(payment.paidAt)
+    paidAt: toIsoDateTime(payment.paidAt),
   });
 
 router.post(
@@ -27,7 +28,7 @@ router.post(
     const payload = paymentCreateSchema.parse(req.body);
 
     const customer = await db.query.customers.findFirst({
-      where: eq(customers.id, payload.customerId)
+      where: eq(customers.id, payload.customerId),
     });
 
     if (!customer) {
@@ -36,7 +37,7 @@ router.post(
 
     if (payload.invoiceId) {
       const invoice = await db.query.invoices.findFirst({
-        where: eq(invoices.id, payload.invoiceId)
+        where: eq(invoices.id, payload.invoiceId),
       });
 
       if (!invoice) {
@@ -44,7 +45,11 @@ router.post(
       }
 
       if (invoice.customerId !== payload.customerId) {
-        throw new ApiError(400, 'invoice_customer_mismatch', 'Invoice does not belong to the customer');
+        throw new ApiError(
+          400,
+          'invoice_customer_mismatch',
+          'Invoice does not belong to the customer',
+        );
       }
     }
 
@@ -55,7 +60,7 @@ router.post(
       .values({
         ...payload,
         paidAt,
-        note: payload.note ?? null
+        note: payload.note ?? null,
       })
       .returning()
       .get();
@@ -66,7 +71,7 @@ router.post(
 
     const responsePayload = normalizePayment(inserted);
     res.status(201).json(responsePayload);
-  })
+  }),
 );
 
 router.get(
@@ -100,9 +105,7 @@ router.get(
           : and(...(filters as [SQL, SQL, ...SQL[]]));
 
     const baseSelection = db.select().from(payments);
-    const filteredSelection = whereClause
-      ? baseSelection.where(whereClause)
-      : baseSelection;
+    const filteredSelection = whereClause ? baseSelection.where(whereClause) : baseSelection;
 
     const orderedSelection =
       query.direction === 'asc'
@@ -112,9 +115,7 @@ router.get(
     const rows = orderedSelection.limit(query.limit).offset(query.offset).all();
 
     const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(payments);
-    const filteredCountQuery = whereClause
-      ? baseCountQuery.where(whereClause)
-      : baseCountQuery;
+    const filteredCountQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
 
     const total = filteredCountQuery.get()?.count ?? rows.length;
 
@@ -123,12 +124,12 @@ router.get(
       pagination: {
         total,
         limit: query.limit,
-        offset: query.offset
-      }
+        offset: query.offset,
+      },
     });
 
     res.json(payload);
-  })
+  }),
 );
 
 router.get(
@@ -138,7 +139,7 @@ router.get(
     const parsedId = paymentSchema.shape.id.parse(id);
 
     const record = await db.query.payments.findFirst({
-      where: eq(payments.id, parsedId)
+      where: eq(payments.id, parsedId),
     });
 
     if (!record) {
@@ -146,7 +147,7 @@ router.get(
     }
 
     res.json(normalizePayment(record));
-  })
+  }),
 );
 
 export { router as paymentsRouter };

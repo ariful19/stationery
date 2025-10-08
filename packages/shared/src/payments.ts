@@ -1,11 +1,12 @@
 import { z } from 'zod';
+
 import {
   dateOnlyStringSchema,
   dateTimeStringSchema,
   idSchema,
   listQuerySchema,
   moneyCentsSchema,
-  paginationSchema
+  paginationSchema,
 } from './common.js';
 
 export const paymentMethodSchema = z.enum(['cash', 'bkash', 'card', 'other']);
@@ -17,13 +18,13 @@ export const paymentSchema = z.object({
   amountCents: moneyCentsSchema.min(1),
   method: paymentMethodSchema,
   paidAt: dateTimeStringSchema,
-  note: z.string().trim().max(240).optional()
+  note: z.string().trim().max(240).optional(),
 });
 
 export const paymentCreateSchema = paymentSchema
   .omit({ id: true, paidAt: true })
   .extend({
-    paidAt: dateTimeStringSchema.optional()
+    paidAt: dateTimeStringSchema.optional(),
   })
   .strict();
 
@@ -33,12 +34,12 @@ export const paymentListQuerySchema = listQuerySchema.extend({
   from: dateOnlyStringSchema.optional(),
   to: dateOnlyStringSchema.optional(),
   sort: z.enum(['paidAt']).default('paidAt'),
-  direction: z.enum(['asc', 'desc']).default('desc')
+  direction: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export const paymentListResponseSchema = z.object({
   data: z.array(paymentSchema),
-  pagination: paginationSchema
+  pagination: paginationSchema,
 });
 
 export type Payment = z.infer<typeof paymentSchema>;
@@ -51,11 +52,11 @@ export const examplePaymentCreate: PaymentCreateInput = {
   invoiceId: 1,
   amountCents: 5000,
   method: 'cash',
-  note: 'Deposit payment'
+  note: 'Deposit payment',
 };
 
 export const examplePayment: Payment = {
   id: 1,
   ...examplePaymentCreate,
-  paidAt: '2024-01-02T00:00:00.000Z'
+  paidAt: '2024-01-02T00:00:00.000Z',
 };

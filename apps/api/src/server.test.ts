@@ -1,5 +1,3 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import request from 'supertest';
 import {
   customerLedgerSchema,
   customerListResponseSchema,
@@ -11,14 +9,17 @@ import {
   examplePaymentCreate,
   exampleProductCreate,
   invoiceListResponseSchema,
-  invoiceSchema,
   invoicePdfRequestSchema,
+  invoiceSchema,
   paymentListResponseSchema,
   paymentSchema,
   paymentsLedgerSchema,
   productSchema,
-  salesReportSchema
+  salesReportSchema,
 } from '@stationery/shared';
+import request from 'supertest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { createOpenApiDocument } from './docs/openapi.js';
 import { createTestDatabase, resetTestDatabase } from './test-utils/create-test-db.js';
 
@@ -83,9 +84,9 @@ describe('API server contract', () => {
           productId: product.id,
           quantity: 2,
           unitPriceCents: product.unitPriceCents,
-          description: product.description ?? undefined
-        }
-      ]
+          description: product.description ?? undefined,
+        },
+      ],
     };
 
     const createdInvoice = await request(app).post('/api/v1/invoices').send(invoicePayload);
@@ -102,7 +103,7 @@ describe('API server contract', () => {
       ...examplePaymentCreate,
       customerId: customer.id,
       invoiceId: invoice.id,
-      amountCents: Math.trunc(invoice.grandTotalCents / 2)
+      amountCents: Math.trunc(invoice.grandTotalCents / 2),
     };
 
     const createdPayment = await request(app).post('/api/v1/payments').send(paymentPayload);
@@ -122,7 +123,7 @@ describe('API server contract', () => {
     const duesReport = await request(app).get('/api/v1/reports/dues');
     expect(duesReport.status).toBe(200);
     const dues = duesReportSchema.parse(duesReport.body);
-    const duesEntry = dues.customers.find(entry => entry.customerId === customer.id);
+    const duesEntry = dues.customers.find((entry) => entry.customerId === customer.id);
     expect(duesEntry?.balanceCents).toBe(invoice.grandTotalCents - paymentPayload.amountCents);
 
     const salesReport = await request(app)
@@ -142,7 +143,7 @@ describe('API server contract', () => {
       .buffer()
       .parse((res, callback) => {
         const chunks: Uint8Array[] = [];
-        res.on('data', chunk => chunks.push(chunk));
+        res.on('data', (chunk) => chunks.push(chunk));
         res.on('end', () => callback(null, Buffer.concat(chunks)));
       });
     expect(duesPdf.status).toBe(200);
@@ -154,7 +155,7 @@ describe('API server contract', () => {
       .buffer()
       .parse((res, callback) => {
         const chunks: Uint8Array[] = [];
-        res.on('data', chunk => chunks.push(chunk));
+        res.on('data', (chunk) => chunks.push(chunk));
         res.on('end', () => callback(null, Buffer.concat(chunks)));
       });
 

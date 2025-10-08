@@ -1,8 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import puppeteer, { Browser, PuppeteerLaunchOptions } from 'puppeteer';
+
 import type { Invoice } from '@stationery/shared';
-import { renderInvoiceHtml, type InvoiceTemplateOptions, type InvoiceTemplateVariant } from '../templates/invoice/render.js';
+import puppeteer, { Browser, PuppeteerLaunchOptions } from 'puppeteer';
+
+import {
+  type InvoiceTemplateOptions,
+  type InvoiceTemplateVariant,
+  renderInvoiceHtml,
+} from '../templates/invoice/render.js';
 
 export interface InvoicePdfRenderOptions extends InvoiceTemplateOptions {
   variant?: InvoiceTemplateVariant;
@@ -10,7 +16,11 @@ export interface InvoicePdfRenderOptions extends InvoiceTemplateOptions {
 
 export interface InvoicePdfRenderer {
   render(invoice: Invoice, options?: InvoicePdfRenderOptions): Promise<Buffer>;
-  renderToFile(invoice: Invoice, filePath: string, options?: InvoicePdfRenderOptions): Promise<string>;
+  renderToFile(
+    invoice: Invoice,
+    filePath: string,
+    options?: InvoicePdfRenderOptions,
+  ): Promise<string>;
   preview(invoice: Invoice, options?: InvoicePdfRenderOptions): Promise<string>;
   close(): Promise<void>;
 }
@@ -47,10 +57,10 @@ class PuppeteerInvoicePdfRenderer implements InvoicePdfRenderer {
             '--no-sandbox',
             '--font-render-hinting=medium',
             '--disable-dev-shm-usage',
-            ...(this.launchOptions.args ?? [])
-          ]
+            ...(this.launchOptions.args ?? []),
+          ],
         })
-        .catch(error => {
+        .catch((error) => {
           this.browserPromise = null;
           throw error;
         });
@@ -73,14 +83,14 @@ class PuppeteerInvoicePdfRenderer implements InvoicePdfRenderer {
           ? {
               printBackground: true,
               preferCSSPageSize: true,
-              margin: { top: '6mm', bottom: '8mm', left: '6mm', right: '6mm' }
+              margin: { top: '6mm', bottom: '8mm', left: '6mm', right: '6mm' },
             }
           : {
               format: 'A4',
               printBackground: true,
               preferCSSPageSize: true,
-              margin: { top: '18mm', bottom: '20mm', left: '18mm', right: '18mm' }
-            }
+              margin: { top: '18mm', bottom: '20mm', left: '18mm', right: '18mm' },
+            },
       );
 
       return Buffer.from(pdfBuffer);

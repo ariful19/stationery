@@ -1,11 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+
 import { exampleInvoice } from '@stationery/shared';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../templates/invoice/render.js', () => ({
-  renderInvoiceHtml: vi.fn(() => '<html><body>Invoice</body></html>')
+  renderInvoiceHtml: vi.fn(() => '<html><body>Invoice</body></html>'),
 }));
 
 const { renderInvoiceHtml } = await import('../templates/invoice/render.js');

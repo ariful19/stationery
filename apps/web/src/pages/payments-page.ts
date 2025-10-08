@@ -8,7 +8,7 @@ import {
   type Customer,
   type Invoice,
   type Payment,
-  type PaymentCreateInput
+  type PaymentCreateInput,
 } from '../api/client.js';
 import { formatCurrency, formatDate } from '../utils/format.js';
 
@@ -129,7 +129,7 @@ export class PaymentsPage extends LitElement {
       const [payments, customers, invoices] = await Promise.all([
         fetchPayments({ limit: 50, direction: 'desc' }),
         fetchCustomers({ limit: 100, sort: 'name', direction: 'asc' }),
-        fetchInvoices({ limit: 100, sort: 'issueDate', direction: 'desc' })
+        fetchInvoices({ limit: 100, sort: 'issueDate', direction: 'desc' }),
       ]);
       this.payments = payments.data;
       this.customers = customers.data;
@@ -156,7 +156,7 @@ export class PaymentsPage extends LitElement {
       invoiceId: invoiceId && Number.isFinite(invoiceId) ? invoiceId : undefined,
       amountCents: Number.isNaN(amount) ? 0 : amount,
       method: (formData.get('method') as PaymentCreateInput['method']) ?? 'cash',
-      note: (formData.get('note') as string | null)?.trim() || undefined
+      note: (formData.get('note') as string | null)?.trim() || undefined,
     };
 
     if (payload.amountCents <= 0) return;
@@ -165,17 +165,17 @@ export class PaymentsPage extends LitElement {
     const optimistic: Payment = {
       id: Date.now() * -1,
       ...payload,
-      paidAt: new Date().toISOString()
+      paidAt: new Date().toISOString(),
     };
     this.payments = [optimistic, ...this.payments];
     form.reset();
 
     try {
       const created = await createPayment(payload);
-      this.payments = [created, ...this.payments.filter(payment => payment.id !== optimistic.id)];
+      this.payments = [created, ...this.payments.filter((payment) => payment.id !== optimistic.id)];
     } catch (error) {
       console.error('Failed to create payment', error);
-      this.payments = this.payments.filter(payment => payment.id !== optimistic.id);
+      this.payments = this.payments.filter((payment) => payment.id !== optimistic.id);
     } finally {
       this.creating = false;
     }
@@ -190,14 +190,18 @@ export class PaymentsPage extends LitElement {
             <span>Customer</span>
             <select name="customerId" required .value=${String(this.customer ?? '')}>
               <option value="">Select customer</option>
-              ${this.customers.map(customer => html`<option value=${customer.id}>${customer.name}</option>`)}
+              ${this.customers.map(
+                (customer) => html`<option value=${customer.id}>${customer.name}</option>`,
+              )}
             </select>
           </label>
           <label>
             <span>Invoice</span>
             <select name="invoiceId">
               <option value="">Unallocated</option>
-              ${this.invoices.map(invoice => html`<option value=${invoice.id}>${invoice.invoiceNo}</option>`)}
+              ${this.invoices.map(
+                (invoice) => html`<option value=${invoice.id}>${invoice.invoiceNo}</option>`,
+              )}
             </select>
           </label>
           <label>
@@ -217,7 +221,9 @@ export class PaymentsPage extends LitElement {
             <span>Note</span>
             <textarea name="note" placeholder="Optional"></textarea>
           </label>
-          <button type="submit" ?disabled=${this.creating}>${this.creating ? 'Saving…' : 'Save payment'}</button>
+          <button type="submit" ?disabled=${this.creating}>
+            ${this.creating ? 'Saving…' : 'Save payment'}
+          </button>
         </form>
         <div>
           <table>
@@ -231,11 +237,16 @@ export class PaymentsPage extends LitElement {
               </tr>
             </thead>
             <tbody>
-              ${this.payments.map(payment => {
-                const customer = this.customers.find(item => item.id === payment.customerId);
-                const invoice = this.invoices.find(item => item.id === payment.invoiceId);
+              ${this.payments.map((payment) => {
+                const customer = this.customers.find((item) => item.id === payment.customerId);
+                const invoice = this.invoices.find((item) => item.id === payment.invoiceId);
                 return html`<tr>
-                  <td>${formatDate(payment.paidAt, undefined, { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                  <td>
+                    ${formatDate(payment.paidAt, undefined, {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                  </td>
                   <td>${customer?.name ?? payment.customerId}</td>
                   <td>${invoice?.invoiceNo ?? '—'}</td>
                   <td>${formatCurrency(payment.amountCents)}</td>

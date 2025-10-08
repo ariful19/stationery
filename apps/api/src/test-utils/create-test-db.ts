@@ -1,7 +1,9 @@
-import Database from 'better-sqlite3';
-import type { Database as BetterSqlite3Database } from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { readdirSync, readFileSync } from 'node:fs';
+
+import type { Database as BetterSqlite3Database } from 'better-sqlite3';
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+
 import * as schema from '../db/schema.js';
 
 export type TestDatabase = ReturnType<typeof createTestDatabase>;
@@ -10,7 +12,7 @@ export function createTestDatabase() {
   const sqlite = new Database(':memory:');
   const migrationsDir = new URL('../../drizzle/', import.meta.url);
   const migrationFiles = readdirSync(migrationsDir)
-    .filter(file => file.endsWith('.sql'))
+    .filter((file) => file.endsWith('.sql'))
     .sort();
 
   for (const file of migrationFiles) {
@@ -30,7 +32,7 @@ export function resetTestDatabase(sqlite: BetterSqlite3Database) {
       'DELETE FROM payments;',
       'DELETE FROM invoices;',
       'DELETE FROM products;',
-      'DELETE FROM customers;'
-    ].join('\n')
+      'DELETE FROM customers;',
+    ].join('\n'),
   );
 }

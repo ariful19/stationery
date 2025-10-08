@@ -5,7 +5,7 @@ import {
   fetchCustomers,
   type Customer,
   type CustomerCreateInput,
-  type CustomerListResponse
+  type CustomerListResponse,
 } from '../api/client.js';
 import '../components/customer-list.js';
 import { formatRelativeDate } from '../utils/format.js';
@@ -169,7 +169,7 @@ export class CustomersPage extends LitElement {
       name: String(formData.get('name') ?? '').trim(),
       email: (formData.get('email') as string | null)?.trim() || undefined,
       phone: (formData.get('phone') as string | null)?.trim() || undefined,
-      address: (formData.get('address') as string | null)?.trim() || undefined
+      address: (formData.get('address') as string | null)?.trim() || undefined,
     };
 
     if (!payload.name) return;
@@ -180,7 +180,7 @@ export class CustomersPage extends LitElement {
       email: payload.email,
       phone: payload.phone,
       address: payload.address,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     this.creating = true;
@@ -190,11 +190,14 @@ export class CustomersPage extends LitElement {
 
     try {
       const created = await createCustomer(payload);
-      this.customers = [created, ...this.customers.filter(customer => customer.id !== optimistic.id)];
+      this.customers = [
+        created,
+        ...this.customers.filter((customer) => customer.id !== optimistic.id),
+      ];
       this.selected = created;
     } catch (error) {
       console.error('Failed to create customer', error);
-      this.customers = this.customers.filter(customer => customer.id !== optimistic.id);
+      this.customers = this.customers.filter((customer) => customer.id !== optimistic.id);
     } finally {
       this.creating = false;
     }
@@ -210,8 +213,8 @@ export class CustomersPage extends LitElement {
       new CustomEvent('navigate', {
         detail: `/invoices/new?customerId=${this.selected.id}`,
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   }
 
@@ -221,8 +224,8 @@ export class CustomersPage extends LitElement {
       new CustomEvent('navigate', {
         detail: `/payments?customer=${this.selected.id}`,
         bubbles: true,
-        composed: true
-      })
+        composed: true,
+      }),
     );
   }
 
@@ -244,23 +247,23 @@ export class CustomersPage extends LitElement {
           </div>
           ${this.selected
             ? html`<dl>
-                <div>
-                  <dt>Email</dt>
-                  <dd>${this.selected.email ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt>Phone</dt>
-                  <dd>${this.selected.phone ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt>Address</dt>
-                  <dd>${this.selected.address ?? '—'}</dd>
-                </div>
-              </dl>
-              <div class="actions">
-                <button type="button" @click=${this.goToInvoice}>Start invoice</button>
-                <button type="button" @click=${this.goToPayments}>Record payment</button>
-              </div>`
+                  <div>
+                    <dt>Email</dt>
+                    <dd>${this.selected.email ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Phone</dt>
+                    <dd>${this.selected.phone ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Address</dt>
+                    <dd>${this.selected.address ?? '—'}</dd>
+                  </div>
+                </dl>
+                <div class="actions">
+                  <button type="button" @click=${this.goToInvoice}>Start invoice</button>
+                  <button type="button" @click=${this.goToPayments}>Record payment</button>
+                </div>`
             : null}
         </div>
       </div>
@@ -282,7 +285,9 @@ export class CustomersPage extends LitElement {
           <span>Address</span>
           <textarea name="address" placeholder="Street, City, ZIP"></textarea>
         </label>
-        <button type="submit" ?disabled=${this.creating}>${this.creating ? 'Creating…' : 'Save customer'}</button>
+        <button type="submit" ?disabled=${this.creating}>
+          ${this.creating ? 'Creating…' : 'Save customer'}
+        </button>
       </form>
     `;
   }

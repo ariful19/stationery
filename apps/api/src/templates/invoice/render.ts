@@ -1,4 +1,5 @@
 import type { Invoice } from '@stationery/shared';
+
 import { getInvoiceFontFaceCss } from './fonts.js';
 
 export type InvoiceTemplateVariant = 'a4' | 'thermal';
@@ -45,7 +46,7 @@ function sanitizeUrl(url: string | undefined) {
 
 function renderList(lines?: string[]) {
   if (!lines || lines.length === 0) return '';
-  return lines.map(line => `<div>${escapeHtml(line)}</div>`).join('');
+  return lines.map((line) => `<div>${escapeHtml(line)}</div>`).join('');
 }
 
 export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOptions = {}) {
@@ -55,7 +56,7 @@ export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOpti
     currency = 'USD',
     timezone,
     direction = 'ltr',
-    brand
+    brand,
   } = options;
 
   const accentColor = brand?.accentColor ?? ACCENT_FALLBACK;
@@ -69,12 +70,12 @@ export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOpti
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   });
 
   const dateFormatter = new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
-    timeZone: timezone || 'UTC'
+    timeZone: timezone || 'UTC',
   });
 
   const renderMoney = (value: number) => moneyFormatter.format(value / 100);
@@ -89,11 +90,13 @@ export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOpti
   const customerAddress = invoice.customer?.address
     ? invoice.customer.address
         .split(/\r?\n/)
-        .map(part => part.trim())
-        .filter(part => part.length > 0)
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
     : [];
 
-  const customerContact = [invoice.customer?.email, invoice.customer?.phone].filter(Boolean) as string[];
+  const customerContact = [invoice.customer?.email, invoice.customer?.phone].filter(
+    Boolean,
+  ) as string[];
 
   const pageClass = variant === 'thermal' ? 'thermal-layout' : 'a4-layout';
 
@@ -114,14 +117,18 @@ export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOpti
     .join('');
 
   const paymentRows = invoice.payments
-    .map(payment => `<div class="payment-row">
+    .map(
+      (payment) => `<div class="payment-row">
         <div>${escapeHtml(renderDate(payment.paidAt))}</div>
         <div>${renderMoney(payment.amountCents)}</div>
         ${payment.note ? `<div class="payment-note">${escapeHtml(payment.note)}</div>` : ''}
-      </div>`)
+      </div>`,
+    )
     .join('');
 
-  const notesBlock = invoice.notes ? `<div class="notes"><h3>Notes</h3><p>${escapeHtml(invoice.notes)}</p></div>` : '';
+  const notesBlock = invoice.notes
+    ? `<div class="notes"><h3>Notes</h3><p>${escapeHtml(invoice.notes)}</p></div>`
+    : '';
 
   const fontFaceCss = getInvoiceFontFaceCss();
 
@@ -605,7 +612,7 @@ export function renderInvoiceHtml(invoice: Invoice, options: InvoiceTemplateOpti
 
       ${
         footerLines.length
-          ? `<footer class="invoice-footer">${footerLines.map(line => `<div>${escapeHtml(line)}</div>`).join('')}</footer>`
+          ? `<footer class="invoice-footer">${footerLines.map((line) => `<div>${escapeHtml(line)}</div>`).join('')}</footer>`
           : ''
       }
     </div>

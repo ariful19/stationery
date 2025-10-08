@@ -1,10 +1,11 @@
 import { z } from 'zod';
+
 import {
   dateTimeStringSchema,
   idSchema,
   listQuerySchema,
   moneyCentsSchema,
-  paginationSchema
+  paginationSchema,
 } from './common.js';
 
 export const productSchema = z.object({
@@ -14,26 +15,26 @@ export const productSchema = z.object({
   description: z.string().trim().max(500).optional(),
   unitPriceCents: moneyCentsSchema,
   stockQty: z.number().int().min(0),
-  createdAt: dateTimeStringSchema
+  createdAt: dateTimeStringSchema,
 });
 
-export const productCreateSchema = productSchema
-  .omit({ id: true, createdAt: true })
-  .strict();
+export const productCreateSchema = productSchema.omit({ id: true, createdAt: true }).strict();
 
-export const productUpdateSchema = productCreateSchema.partial().refine(
-  data => Object.keys(data).length > 0,
-  'At least one field must be provided to update a product'
-);
+export const productUpdateSchema = productCreateSchema
+  .partial()
+  .refine(
+    (data) => Object.keys(data).length > 0,
+    'At least one field must be provided to update a product',
+  );
 
 export const productListQuerySchema = listQuerySchema.extend({
   sort: z.enum(['createdAt', 'name', 'sku']).default('createdAt'),
-  direction: z.enum(['asc', 'desc']).default('desc')
+  direction: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export const productListResponseSchema = z.object({
   data: z.array(productSchema),
-  pagination: paginationSchema
+  pagination: paginationSchema,
 });
 
 export type Product = z.infer<typeof productSchema>;
@@ -47,11 +48,11 @@ export const exampleProductCreate: ProductCreateInput = {
   name: 'A4 Copy Paper 80gsm',
   description: 'Standard office copy paper.',
   unitPriceCents: 549,
-  stockQty: 120
+  stockQty: 120,
 };
 
 export const exampleProduct: Product = {
   id: 1,
   ...exampleProductCreate,
-  createdAt: '2024-01-01T00:00:00.000Z'
+  createdAt: '2024-01-01T00:00:00.000Z',
 };
