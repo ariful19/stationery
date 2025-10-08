@@ -25,7 +25,15 @@ export class AppShell extends LitElement {
       background: var(--color-bg);
     }
 
+    .backdrop {
+      display: none;
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+
     nav {
+      grid-column: 1 / 2;
+      grid-row: 1 / -1;
       display: flex;
       flex-direction: column;
       gap: var(--space-sm);
@@ -108,6 +116,8 @@ export class AppShell extends LitElement {
     }
 
     main {
+      grid-column: 2 / 3;
+      grid-row: 1 / -1;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -196,6 +206,8 @@ export class AppShell extends LitElement {
       }
 
       nav {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
         position: fixed;
         inset: 0 auto 0 0;
         width: min(80vw, 320px);
@@ -210,6 +222,7 @@ export class AppShell extends LitElement {
       }
 
       .backdrop {
+        display: block;
         position: fixed;
         inset: 0;
         background: rgba(15, 23, 42, 0.35);
@@ -222,6 +235,11 @@ export class AppShell extends LitElement {
       .backdrop.visible {
         opacity: 1;
         pointer-events: auto;
+      }
+
+      main {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
       }
 
       header {
@@ -254,8 +272,12 @@ export class AppShell extends LitElement {
     this.currentPath = `${url.pathname}${url.search}${url.hash}`;
     document.title = `Stationery · ${route.label}`;
     const content = this.renderRoot?.querySelector('.content-inner');
-    if (content && !prefersReducedMotion.matches) {
-      animate(content, { opacity: [0, 1], y: [12, 0] }, { duration: 0.18, easing: 'ease-out' });
+    if (content instanceof HTMLElement && !prefersReducedMotion.matches) {
+      animate(
+        content,
+        { opacity: [0, 1], transform: ['translateY(12px)', 'translateY(0)'] } as any,
+        { duration: 0.18, easing: 'ease-out' } as any
+      );
     }
   });
 
