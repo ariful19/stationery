@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
-    "start:e2e": "pnpm --filter @stationery/shared build && pnpm build && pnpm start",
+    "start:e2e": "pnpm build && pnpm start",
     "pretest": "pnpm --filter @stationery/shared build",
     "test": "vitest run --coverage",
     "test:watch": "vitest",

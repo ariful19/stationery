@@ -17,7 +17,8 @@ export default defineConfig({
     extraHTTPHeaders: { 'content-type': 'application/json' }
   },
   webServer: {
-    command: 'pnpm run start:e2e',
+    command: 'pnpm --filter @stationery/shared build && pnpm --filter @stationery/api run start:e2e',
+    cwd: '../..',
     env: {
       DATABASE_URL: databaseUrl,
       MOCK_INVOICE_PDF: 'true',

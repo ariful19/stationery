@@ -21,7 +21,8 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'pnpm --filter @stationery/api run start:e2e',
+      command: 'pnpm --filter @stationery/shared build && pnpm --filter @stationery/api run start:e2e',
+      cwd: '../..',
       env: {
         DATABASE_URL: apiDatabaseUrl,
         MOCK_INVOICE_PDF: 'true',
