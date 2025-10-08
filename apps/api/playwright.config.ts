@@ -21,7 +21,8 @@ export default defineConfig({
     env: {
       DATABASE_URL: databaseUrl,
       MOCK_INVOICE_PDF: 'true',
-      MOCK_REPORT_PDF: 'true'
+      MOCK_REPORT_PDF: 'true',
+      PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH
     },
     port: 8080,
     reuseExistingServer: false,

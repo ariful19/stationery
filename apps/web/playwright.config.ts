@@ -25,7 +25,8 @@ export default defineConfig({
       env: {
         DATABASE_URL: apiDatabaseUrl,
         MOCK_INVOICE_PDF: 'true',
-        MOCK_REPORT_PDF: 'true'
+        MOCK_REPORT_PDF: 'true',
+        PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH
       },
       url: 'http://127.0.0.1:8080/api/v1/health',
       reuseExistingServer: false,
