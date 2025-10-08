@@ -1,22 +1,41 @@
 import { expect, test } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 
-const customerPayload = {
+const baseCustomerPayload = {
   name: 'Playwright Demo Customer',
-  email: 'playwright-demo@example.test',
+  emailPrefix: 'playwright-demo',
+  emailDomain: 'example.test',
   phone: '+1 555 0199',
   address: '99 Assertion Ave'
-};
+} as const;
 
-const productPayload = {
-  sku: 'PLAYWRIGHT-SKU-001',
+const baseProductPayload = {
+  skuPrefix: 'PLAYWRIGHT-SKU',
   name: 'Playwright Premium Paper',
   description: 'Premium stationery product used in automated scenarios.',
   unitPriceCents: 4200,
   stockQty: 50
-};
+} as const;
 
 test('creates an end-to-end billing flow', async ({ request }, testInfo) => {
-  const existingResponse = await request.get('customers?query=Playwright Demo Customer');
+  const uniqueSuffix = randomUUID().slice(0, 8);
+
+  const customerPayload = {
+    name: `${baseCustomerPayload.name} ${uniqueSuffix}`,
+    email: `${baseCustomerPayload.emailPrefix}-${uniqueSuffix}@${baseCustomerPayload.emailDomain}`,
+    phone: baseCustomerPayload.phone,
+    address: baseCustomerPayload.address
+  };
+
+  const productPayload = {
+    sku: `${baseProductPayload.skuPrefix}-${uniqueSuffix}`,
+    name: `${baseProductPayload.name} ${uniqueSuffix}`,
+    description: baseProductPayload.description,
+    unitPriceCents: baseProductPayload.unitPriceCents,
+    stockQty: baseProductPayload.stockQty
+  };
+
+  const existingResponse = await request.get(`customers?query=${encodeURIComponent(customerPayload.name)}`);
   if (existingResponse.ok()) {
     const existing = await existingResponse.json();
     if (Array.isArray(existing?.data)) {
@@ -26,7 +45,7 @@ test('creates an end-to-end billing flow', async ({ request }, testInfo) => {
     }
   }
 
-  const existingProductResponse = await request.get('products?query=Playwright Premium Paper');
+  const existingProductResponse = await request.get(`products?query=${encodeURIComponent(productPayload.name)}`);
   if (existingProductResponse.ok()) {
     const existingProducts = await existingProductResponse.json();
     if (Array.isArray(existingProducts?.data)) {
@@ -47,7 +66,7 @@ test('creates an end-to-end billing flow', async ({ request }, testInfo) => {
   expect(product.sku).toBe(productPayload.sku);
 
   const invoicePayload = {
-    invoiceNo: 'INV-E2E-0001',
+    invoiceNo: `INV-E2E-${uniqueSuffix}`,
     customerId: customer.id,
     status: 'issued',
     discountCents: 600,
