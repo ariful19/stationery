@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 import { join } from 'node:path';
 
 const databaseUrl = process.env.PLAYWRIGHT_DATABASE_URL ?? join(process.cwd(), 'tmp', 'playwright-api.sqlite');
+process.env.PLAYWRIGHT_DATABASE_URL = databaseUrl;
 process.env.DATABASE_URL = databaseUrl;
 
 export default defineConfig({
