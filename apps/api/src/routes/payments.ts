@@ -10,7 +10,9 @@ import { Router } from 'express';
 
 import { customers, db, invoices, payments } from '../db/client.js';
 import { ApiError, createNotFoundError } from '../errors.js';
+import { searchRateLimiter } from '../middleware/rate-limit.js';
 import { asyncHandler } from '../utils/async-handler.js';
+import { recordAuditEvent } from '../utils/audit.js';
 import { toIsoDateTime } from '../utils/datetime.js';
 
 const router = Router();
@@ -71,11 +73,17 @@ router.post(
 
     const responsePayload = normalizePayment(inserted);
     res.status(201).json(responsePayload);
+    recordAuditEvent(req, 'payment.created', {
+      paymentId: responsePayload.id,
+      customerId: responsePayload.customerId,
+      invoiceId: responsePayload.invoiceId ?? null,
+    });
   }),
 );
 
 router.get(
   '/',
+  searchRateLimiter,
   asyncHandler((req, res) => {
     const query = paymentListQuerySchema.parse(req.query);
 
