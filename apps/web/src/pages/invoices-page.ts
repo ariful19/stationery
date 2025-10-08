@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import {
   fetchCustomers,
   fetchInvoices,
+  requestInvoicePdf,
   type Customer,
   type Invoice,
   type InvoiceListResponse,
@@ -181,7 +182,31 @@ export class InvoicesPage extends LitElement {
       display: flex;
       gap: var(--space-sm);
       align-items: center;
+      justify-content: space-between;
       flex-wrap: wrap;
+    }
+
+    .details .title {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .details .actions {
+      display: flex;
+      gap: var(--space-xs);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .details .actions button {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-strong);
+      padding: var(--space-xs) var(--space-sm);
+      font-size: 0.85rem;
+      color: var(--color-text);
     }
 
     .details h3 {
@@ -226,6 +251,12 @@ export class InvoicesPage extends LitElement {
       margin: 0;
       color: var(--color-text-muted);
       line-height: 1.5;
+    }
+
+    .pdf-error {
+      margin: 0;
+      color: var(--color-danger, #dc2626);
+      font-size: 0.85rem;
     }
 
     .items table,
@@ -283,6 +314,12 @@ export class InvoicesPage extends LitElement {
     statuses: new Set(),
   };
 
+  @state()
+  private pdfLoading = false;
+
+  @state()
+  private pdfError?: string;
+
   connectedCallback(): void {
     super.connectedCallback();
     this.loadCustomers();
@@ -323,6 +360,7 @@ export class InvoicesPage extends LitElement {
       this.invoices = append ? [...this.invoices, ...response.data] : response.data;
       if (!this.selected || !append) {
         this.selected = this.invoices[0];
+        this.resetPdfState();
       }
     } catch (error) {
       console.error('Failed to load invoices', error);
@@ -384,11 +422,32 @@ export class InvoicesPage extends LitElement {
 
   private selectInvoice(invoice: Invoice) {
     this.selected = invoice;
+    this.resetPdfState();
   }
 
   private canLoadMore() {
     if (!this.pagination) return false;
     return this.pagination.offset + this.pagination.limit < this.pagination.total;
+  }
+
+  private resetPdfState() {
+    this.pdfError = undefined;
+    this.pdfLoading = false;
+  }
+
+  private async viewInvoicePdf(invoiceId: number) {
+    this.pdfLoading = true;
+    this.pdfError = undefined;
+    try {
+      const blob = await requestInvoicePdf(invoiceId);
+      const objectUrl = URL.createObjectURL(blob);
+      window.open(objectUrl, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch (error) {
+      this.pdfError = error instanceof Error ? error.message : 'Failed to open PDF';
+    } finally {
+      this.pdfLoading = false;
+    }
   }
 
   protected render() {
@@ -520,9 +579,21 @@ export class InvoicesPage extends LitElement {
     return html`
       <section class="details">
         <div class="header">
-          <h3>${invoice.invoiceNo}</h3>
-          <span class="status-badge">${formatInvoiceStatus(invoice.status)}</span>
+          <div class="title">
+            <h3>${invoice.invoiceNo}</h3>
+            <span class="status-badge">${formatInvoiceStatus(invoice.status)}</span>
+          </div>
+          <div class="actions">
+            <button
+              type="button"
+              @click=${() => this.viewInvoicePdf(invoice.id)}
+              ?disabled=${this.pdfLoading}
+            >
+              ${this.pdfLoading ? 'Opening…' : 'View as PDF'}
+            </button>
+          </div>
         </div>
+        ${this.pdfError ? html`<p class="pdf-error" role="alert">${this.pdfError}</p>` : nothing}
         <dl class="meta">
           <div>
             <dt>Customer</dt>
