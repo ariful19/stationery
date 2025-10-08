@@ -2,9 +2,9 @@
 
 A modern stationery invoicing demo built as a pnpm workspace. The repository hosts a
 TypeScript/Express API, a Vite/Lit web client, and shared libraries that power both
-experiences. This guide walks through local pnpm development, Docker workflows,
-environment configuration, automated tooling, and the assets/docs ecosystem so new
-contributors can get productive quickly.
+experiences. This guide walks through local pnpm development, environment configuration,
+automated tooling, and the assets/docs ecosystem so new contributors can get productive
+quickly.
 
 ## Table of contents
 
@@ -13,14 +13,13 @@ contributors can get productive quickly.
 3. [Local development with pnpm](#local-development-with-pnpm)
 4. [Database migrations & seed data](#database-migrations--seed-data)
 5. [Screenshots & GIFs](#screenshots--gifs)
-6. [Docker workflow](#docker-workflow)
-7. [API documentation](#api-documentation)
-8. [Environment variables](#environment-variables)
-9. [Testing & quality gates](#testing--quality-gates)
-10. [Optional git hooks](#optional-git-hooks)
-11. [Make targets](#make-targets)
-12. [Troubleshooting](#troubleshooting)
-13. [Developer guidelines](#developer-guidelines)
+6. [API documentation](#api-documentation)
+7. [Environment variables](#environment-variables)
+8. [Testing & quality gates](#testing--quality-gates)
+9. [Optional git hooks](#optional-git-hooks)
+10. [Make targets](#make-targets)
+11. [Troubleshooting](#troubleshooting)
+12. [Developer guidelines](#developer-guidelines)
 
 ## Project layout
 
@@ -31,7 +30,6 @@ apps/
 packages/
   shared/        # Shared validation, invoice helpers, and typings
 scripts/         # Tooling helpers (pre-commit, Playwright reporting, etc.)
-docker/          # Production-ready Dockerfiles for api & web
 ```
 
 ## Requirements
@@ -39,7 +37,6 @@ docker/          # Production-ready Dockerfiles for api & web
 - Node.js 20+
 - [pnpm](https://pnpm.io/) 8+
 - SQLite 3.40+ (CLI is optional but handy for inspection)
-- Docker 24+ with Compose v2 (for the container workflow)
 
 ## Local development with pnpm
 
@@ -92,32 +89,6 @@ new UI states with the running Vite server (`pnpm --filter @stationery/web dev`)
 store them as PNG or GIF files following the `feature-name_description.png` naming
 pattern. Update this README (or feature-specific docs) with Markdown image links when
 adding new assets.
-
-## Docker workflow
-
-Build and boot the production-like containers:
-
-```bash
-docker compose build
-docker compose up -d
-```
-
-- API available at http://localhost:8080
-- Web client served from http://localhost:8081 (rewrites `/api` to the API container)
-
-Health check the services once Compose finishes:
-
-```bash
-docker compose ps --status running
-docker compose logs -f api
-```
-
-Stop everything while preserving the named SQLite volume:
-
-```bash
-docker compose down
-```
-Add `--volumes` to prune the database files as well.
 
 ## API documentation
 
@@ -187,13 +158,13 @@ make help
 ```
 
 Targets cover dependency installation, local dev servers, tests, linting, seeding,
-Docker lifecycle commands, and Swagger documentation helpers.
+and Swagger documentation helpers.
 
 ## Troubleshooting
 
 ### Puppeteer & Chromium dependencies
 
-- Linux containers require `libnss3`, `libatk-1.0-0`, `libatk-bridge2.0-0`,
+- Minimal Linux environments (such as CI containers or remote servers) require `libnss3`, `libatk-1.0-0`, `libatk-bridge2.0-0`,
   `libx11-xcb1`, `libxcomposite1`, `libxdamage1`, `libxfixes3`, and `libxrandr2`.
   Install them with `apt-get install -y` before launching the API in headless
   environments.
@@ -206,8 +177,6 @@ Docker lifecycle commands, and Swagger documentation helpers.
 - Ensure shell scripts are executable: `chmod +x scripts/setup-pre-commit.sh`.
 - On Windows + WSL2, run commands from WSL to avoid `EPERM` errors when SQLite opens
   WAL files. If file locking persists, move the workspace into the WSL filesystem.
-- When Docker binds project files, use a user with matching UID/GID to prevent
-  `EACCES` errors on the generated SQLite database.
 
 ### Codex Web quirks
 

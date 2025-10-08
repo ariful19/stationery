@@ -1,41 +1,39 @@
 
-# Stationery Shop App — End‑to‑End Delivery Plan (Node.js + SQLite + Lit, Containerized)
+# Stationery Shop App — End‑to‑End Delivery Plan (Node.js + SQLite + Lit)
 
-> **Goal**: A beautiful, fast, and reliable web app for a stationery shop to manage customers, products, invoices (PDF), payments, and dues — built with **Node.js + SQLite** in the backend, **Lit** (with Vite) in the frontend, **fully containerized**, and **perfectly testable in Codex Web** environments.
+> **Goal**: A beautiful, fast, and reliable web app for a stationery shop to manage customers, products, invoices (PDF), payments, and dues — built with **Node.js + SQLite** in the backend, **Lit** (with Vite) in the frontend, and **perfectly testable in Codex Web** environments.
 
 ---
 
 ## Table of Contents
 1. [North Star](#north-star)
-2. [Scope & Success Criteria](#scope--success-criteria)
-3. [High-Level Architecture](#high-level-architecture)
-4. [Repository Layout](#repository-layout)
-5. [Environments & Tooling](#environments--tooling)
-6. [Milestones / Phases](#milestones--phases)
-    - [Phase 0 — Project Bootstrap](#phase-0--project-bootstrap)
-    - [Phase 1 — Data Model & Migrations](#phase-1--data-model--migrations)
-    - [Phase 2 — API Design](#phase-2--api-design)
-    - [Phase 3 — Core Business Logic](#phase-3--core-business-logic)
-    - [Phase 4 — PDF Invoices](#phase-4--pdf-invoices)
-    - [Phase 5 — Frontend (Lit)](#phase-5--frontend-lit)
-    - [Phase 6 — Reports & Export](#phase-6--reports--export)
-    - [Phase 7 — Testing](#phase-7--testing)
-    - [Phase 8 — Containerization](#phase-8--containerization)
-    - [Phase 9 — Docs & DX](#phase-9--docs--dx)
-    - [Phase 10 — Hardening & Polish](#phase-10--hardening--polish)
-7. [Detailed Agent Playbook](#detailed-agent-playbook)
-8. [Backlog (Issues/Tickets)](#backlog-issuestickets)
-9. [Data Model](#data-model)
-10. [API Contract (v1)](#api-contract-v1)
-11. [Frontend (Lit) Structure](#frontend-lit-structure)
-12. [Testing Strategy](#testing-strategy)
-13. [Containerization Strategy](#containerization-strategy)
-14. [Security & Compliance](#security--compliance)
-15. [Observability & Logging](#observability--logging)
-16. [Dev Ergonomics for “Codex Web”](#dev-ergonomics-for-codex-web)
-17. [Stretch Goals](#stretch-goals)
-18. [Definition of Done Checklist](#definition-of-done-checklist)
-19. [Appendix](#appendix)
+1. [Scope & Success Criteria](#scope--success-criteria)
+1. [High-Level Architecture](#high-level-architecture)
+1. [Repository Layout](#repository-layout)
+1. [Environments & Tooling](#environments--tooling)
+1. [Milestones / Phases](#milestones--phases)
+  - [Phase 0 — Project Bootstrap](#phase-0--project-bootstrap)
+  - [Phase 1 — Data Model & Migrations](#phase-1--data-model--migrations)
+  - [Phase 2 — API Design](#phase-2--api-design)
+  - [Phase 3 — Core Business Logic](#phase-3--core-business-logic)
+  - [Phase 4 — PDF Invoices](#phase-4--pdf-invoices)
+  - [Phase 5 — Frontend (Lit)](#phase-5--frontend-lit)
+  - [Phase 6 — Reports & Export](#phase-6--reports--export)
+  - [Phase 7 — Testing](#phase-7--testing)
+  - [Phase 8 — Docs & DX](#phase-8--docs--dx)
+  - [Phase 9 — Hardening & Polish](#phase-9--hardening--polish)
+1. [Detailed Agent Playbook](#detailed-agent-playbook)
+1. [Backlog (Issues/Tickets)](#backlog-issuestickets)
+1. [Data Model](#data-model)
+1. [API Contract (v1)](#api-contract-v1)
+1. [Frontend (Lit) Structure](#frontend-lit-structure)
+1. [Testing Strategy](#testing-strategy)
+1. [Security & Compliance](#security--compliance)
+1. [Observability & Logging](#observability--logging)
+1. [Dev Ergonomics for “Codex Web”](#dev-ergonomics-for-codex-web)
+1. [Stretch Goals](#stretch-goals)
+1. [Definition of Done Checklist](#definition-of-done-checklist)
+1. [Appendix](#appendix)
 
 ---
 
@@ -46,7 +44,7 @@
   - **Backend**: Node.js (Express), TypeScript, Drizzle ORM, `better-sqlite3`, Zod validation, Puppeteer (PDF).
   - **Frontend**: Lit + Vite, TypeScript, Motion One (micro-animations), Chart.js (visuals).
   - **Testing**: Vitest (unit), Playwright (E2E), OpenAPI-based contract tests.
-  - **Infra**: Docker multi-stage builds, docker-compose, named volumes for SQLite, WAL mode.
+  - **Infra**: Local pnpm workflows with SQLite in WAL mode and reproducible data seeds.
 - **Non-goals** (for MVP): Multi-tenant auth, distributed DB, heavy role/permission matrix (can be added later).
 
 ---
@@ -61,12 +59,11 @@
   - Reports: Dues by customer, Sales by date range, Payment list.
   - PDF invoice generation (A4 & 80mm thermal).
   - CSV exports.
-  - Containerized deployment with persistent SQLite volume.
 - **Success Criteria**
-  - One-command dev up (`pnpm dev` or `docker compose up`).
+  - One-command dev up (`pnpm dev`).
   - E2E flow: create customer → product → invoice → payment → dues updated.
-  - PDF invoices render consistently in local and container environments.
-  - Data persists across container restarts.
+  - PDF invoices render consistently in local and CI environments.
+  - Data persists across local restarts thanks to SQLite WAL mode.
   - Works in “Codex Web” sandboxes (proxy, host binding, headless tests).
 
 ---
@@ -97,10 +94,6 @@ stationery/
     web/           # Lit + Vite + TS
   packages/
     shared/        # shared types, zod schemas, utils
-  docker/
-    api.Dockerfile
-    web.Dockerfile
-  docker-compose.yml
   .env.example
   README.md
 ```
@@ -117,7 +110,7 @@ stationery/
 - **TypeScript** everywhere; `eslint` + `prettier`.
 - **Playwright** for browser automation; **Vitest** for unit tests.
 - **Vite** dev server with proxy to API to avoid CORS.
-- **CI**: run `pnpm build`, `pnpm test`, `pnpm e2e`, then build Docker images.
+- **CI**: run `pnpm build`, `pnpm test`, and `pnpm e2e` for regression coverage.
 
 ---
 
@@ -198,7 +191,7 @@ stationery/
 - Optional: watermark for unpaid/partial.
 
 **Acceptance**
-- PDFs render correctly in local and container; totals and formatting match UI.
+- PDFs render correctly in local development and CI; totals and formatting match UI.
 
 ---
 
@@ -250,25 +243,11 @@ stationery/
 
 ---
 
-### Phase 8 — Containerization
-**Compose**
-- `api`: Node base (alpine/slim), multi-stage build; expose `8080`; mount named volume `db_data` to persist SQLite `./data/app.db`.
-- `web`: build static assets via Vite; serve with Express or tiny static server.
-
-**SQLite**
-- WAL mode to reduce writer/reader contention.
-- Healthchecks for both services.
-
-**Acceptance**
-- `docker compose up -d` brings up both services; data persists; PDFs render; healthchecks pass.
-
----
-
-### Phase 9 — Docs & DX
+### Phase 8 — Docs & DX
 **Docs**
-- README: quickstart (local + docker), env vars, screenshots.
+- README: quickstart (local), env vars, screenshots.
 - `/docs` Swagger UI + download OpenAPI JSON.
-- Troubleshooting (Puppeteer deps in container, file permissions).
+- Troubleshooting (Puppeteer deps, file permissions).
 
 **DX**
 - Seed script, faker data.
@@ -276,7 +255,7 @@ stationery/
 
 ---
 
-### Phase 10 — Hardening & Polish
+### Phase 9 — Hardening & Polish
 **Security**
 - CORS (tight), Helmet, rate-limit on PDF and search routes.
 - Input validation everywhere; safe file names for PDFs.
@@ -364,15 +343,6 @@ Each “Agent” is a repeatable, self-contained task with clear IO and acceptan
 
 ---
 
-### Agent `Docker`
-- **Goal**: Multi-stage Dockerfiles + docker-compose + named volume + healthchecks.
-- **Verify**: `docker compose up -d` works; DB persists; `/health` OK.
-
-**Prompt**
-> Build `docker/api.Dockerfile` and `docker/web.Dockerfile`. Compose file with `db_data` volume mapped to `apps/api/data/app.db`. Add healthchecks and environment variables.
-
----
-
 ## Backlog (Issues/Tickets)
 
 - [ ] Init monorepo & workspace configs
@@ -392,10 +362,9 @@ Each “Agent” is a repeatable, self-contained task with clear IO and acceptan
 - [ ] Charts (dues, sales trend)
 - [ ] Unit tests (Vitest)
 - [ ] E2E tests (Playwright)
-- [ ] Dockerfiles + compose
 - [ ] README + Swagger
 - [ ] Security hardening & indices
-- [ ] CI pipeline (build, test, e2e, image)
+- [ ] CI pipeline (build, test, e2e)
 
 ---
 
@@ -490,19 +459,6 @@ web/src/
 
 ---
 
-## Containerization Strategy
-
-- **api.Dockerfile**: multi-stage Node build → runtime (alpine/slim); create `/app/data` for SQLite; run as non-root; healthcheck curl `/health`.
-- **web.Dockerfile**: Vite build → lightweight static server.
-- **docker-compose.yml**:
-  - services: `api`, `web`
-  - volume: `db_data:/app/data`
-  - ports: `8080` (api), `5173` or `8081` (web)
-  - env: `NODE_ENV`, `PORT`, `DB_PATH=./data/app.db`
-- **SQLite**: ensure WAL; mount named volume; backup on stop (optional script).
-
----
-
 ## Security & Compliance
 
 - Helmet, CORS allowlist, rate-limit specific routes (PDF/search).
@@ -544,7 +500,6 @@ web/src/
 - [ ] DB migrations applied; WAL verified; seed script exists.
 - [ ] Unit + E2E tests green; Playwright HTML report generated.
 - [ ] PDF invoice correct for A4 and thermal.
-- [ ] Docker compose up works; data persists via named volume.
 - [ ] README with quickstart, screenshots, troubleshooting.
 - [ ] Basic security hardening (Helmet, CORS, rate-limit), indices in place.
 
@@ -565,43 +520,6 @@ PDF_LOCALE=en-US
 VITE_API_BASE=/api
 ```
 
-### Example `docker-compose.yml` (skeleton)
-```yaml
-version: "3.9"
-services:
-  api:
-    build:
-      context: .
-      dockerfile: ./docker/api.Dockerfile
-    environment:
-      - PORT=8080
-      - NODE_ENV=production
-      - DB_PATH=/app/data/app.db
-    volumes:
-      - db_data:/app/data
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
-      interval: 20s
-      timeout: 5s
-      retries: 5
-
-  web:
-    build:
-      context: .
-      dockerfile: ./docker/web.Dockerfile
-    environment:
-      - NODE_ENV=production
-    ports:
-      - "8081:8081"
-    depends_on:
-      - api
-
-volumes:
-  db_data:
-```
-
 ### Example Makefile Targets (optional)
 ```
 dev: ## run web + api in dev
@@ -609,15 +527,6 @@ dev: ## run web + api in dev
 
 e2e: ## run end-to-end tests
 	pnpm -r e2e
-
-docker: ## build images
-	docker compose build
-
-up:
-	docker compose up -d
-
-down:
-	docker compose down
 ```
 
 ---

@@ -1,7 +1,6 @@
 PNPM ?= pnpm
-DOCKER ?= docker compose
 
-.PHONY: help install build dev dev-api dev-web lint format format-check test test-e2e seed seed-faker db-push docker-build docker-up docker-down docker-logs docs hooks
+.PHONY: help install build dev dev-api dev-web lint format format-check test test-e2e seed seed-faker db-push docs hooks
 
 help:
 	@echo "Available targets:"
@@ -45,18 +44,6 @@ seed-faker: ## Generate random fixtures using Faker
 
 db-push: ## Apply Drizzle migrations and ensure database views
 	$(PNPM) db:push
-
-docker-build: ## Build Docker images
-	$(DOCKER) build
-
-docker-up: ## Start the Docker Compose stack
-	$(DOCKER) up -d
-
-docker-down: ## Stop containers (preserve volumes)
-	$(DOCKER) down
-
-docker-logs: ## Tail logs from running containers
-	$(DOCKER) logs -f
 
 docs: ## Print the Swagger UI and OpenAPI URLs
 	@URL=$${PUBLIC_API_URL:-http://localhost:8080}; \

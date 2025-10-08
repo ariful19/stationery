@@ -26,6 +26,6 @@ or the downloaded file to generate clients or validate requests.
 ## Serving docs from a static host
 
 When deploying, expose the same `/docs` and `/docs/openapi.json` endpoints through
-your platform of choice. The production Docker image bundles Swagger UI, so a simple
-`docker compose up -d` is enough to share the documentation with teammates without
-running the development server locally.
+your platform of choice. For quick sharing during development, forward port 8080 or
+host the API dev server on a shared machine so teammates can browse the live docs
+without running the entire stack locally.
