@@ -34,24 +34,151 @@ export class InvoiceForm extends LitElement {
 
     form {
       display: grid;
+      gap: var(--space-2xl);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(215, 222, 234, 0.8);
+      box-shadow: var(--shadow-md);
+      padding: clamp(1.5rem, 1.2rem + 1.5vw, 2.75rem);
+    }
+
+    .form-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-xl);
+    }
+
+    .form-header h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.01em;
+    }
+
+    .form-header p {
+      margin: 0;
+      color: var(--color-text-muted);
+      max-width: 460px;
+      line-height: 1.6;
+    }
+
+    .form-header .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .customer-chip {
+      background: var(--color-surface-strong);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
+      padding: var(--space-lg);
+      min-width: 220px;
+      display: grid;
+      gap: var(--space-xs);
+    }
+
+    .customer-chip dt {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    .customer-chip dd {
+      margin: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .customer-chip strong {
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .customer-chip span {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+    }
+
+    .lines-section,
+    .adjustments,
+    .summary,
+    .notes-field {
+      display: grid;
       gap: var(--space-lg);
+    }
+
+    .section-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .section-header h3 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.92rem;
     }
 
     .lines {
       display: grid;
-      gap: var(--space-md);
+      gap: var(--space-lg);
     }
 
     .line {
-      display: grid;
-      grid-template-columns: minmax(220px, 1.2fr) minmax(110px, 0.6fr) minmax(140px, 0.6fr) auto;
-      gap: var(--space-md);
-      align-items: end;
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
+      background: var(--color-surface-strong);
+      border-radius: var(--radius-lg);
       border: 1px solid var(--color-border);
-      background: var(--color-surface);
       box-shadow: var(--shadow-sm);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-lg);
+      transition:
+        border-color var(--transition-snappy),
+        box-shadow var(--transition-snappy),
+        transform var(--transition-snappy);
+    }
+
+    .line:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 18px 36px rgba(37, 99, 235, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .line header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    .line-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+
+    .line-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.3fr) minmax(110px, 0.6fr) minmax(140px, 0.7fr);
+      gap: var(--space-lg);
+      align-items: end;
     }
 
     .line-main {
@@ -60,117 +187,232 @@ export class InvoiceForm extends LitElement {
       gap: var(--space-sm);
     }
 
-    .line-main input[type='text'] {
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--color-border);
-      padding: var(--space-sm) var(--space-md);
-      font-size: 0.9rem;
+    label > span,
+    .notes-field > span,
+    .status-field label span {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text-subtle);
+      margin-bottom: var(--space-xs);
     }
 
-    .line-main input[type='text']:focus-visible {
+    input[type='text'],
+    input[type='number'],
+    textarea,
+    select {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(215, 222, 234, 0.9);
+      background: #fff;
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.95rem;
+      transition:
+        border-color var(--transition-snappy),
+        box-shadow var(--transition-snappy);
+    }
+
+    input[type='text']:focus-visible,
+    input[type='number']:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
       outline: none;
     }
 
-    .line-actions {
-      align-self: center;
-      display: flex;
-      gap: var(--space-xs);
+    input[type='number'] {
+      -moz-appearance: textfield;
     }
 
-    .line-actions button {
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--color-border);
-      background: var(--color-surface);
-      padding: var(--space-xs) var(--space-sm);
-      font-size: 0.85rem;
-      color: var(--color-text-muted);
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    money-input {
+      display: block;
     }
 
     textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-border);
+      min-height: 96px;
       resize: vertical;
       font-family: inherit;
-      font-size: 0.95rem;
+      line-height: 1.5;
     }
 
-    textarea:focus-visible {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-      outline: none;
+    .helper {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin: 0;
     }
 
-    .summary {
-      display: grid;
+    .remove-button {
+      border-radius: var(--radius-full, 999px);
+      border: 1px solid rgba(215, 222, 234, 0.9);
+      background: #fff;
+      color: var(--color-text-muted);
+      padding: var(--space-xs) var(--space-sm);
+      font-size: 0.85rem;
+      transition:
+        color var(--transition-snappy),
+        border-color var(--transition-snappy),
+        transform var(--transition-snappy);
+    }
+
+    .remove-button:hover:not([disabled]) {
+      color: var(--color-negative);
+      border-color: rgba(220, 38, 38, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .remove-button[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .add-line {
+      display: inline-flex;
+      align-items: center;
       gap: var(--space-sm);
       border-radius: var(--radius-lg);
-      padding: var(--space-xl);
-      background: linear-gradient(160deg, rgba(37, 99, 235, 0.08), rgba(249, 115, 22, 0.08));
-      border: 1px solid rgba(37, 99, 235, 0.16);
+      border: 1px dashed rgba(37, 99, 235, 0.4);
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--color-primary);
+      padding: var(--space-sm) var(--space-lg);
+      font-weight: 600;
+      transition:
+        background var(--transition-snappy),
+        border-color var(--transition-snappy),
+        transform var(--transition-snappy);
+      width: fit-content;
+    }
+
+    .add-line:hover {
+      background: rgba(37, 99, 235, 0.12);
+      border-color: var(--color-primary);
+      transform: translateY(-1px);
     }
 
     .totals {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-lg);
-      align-items: start;
+      background: var(--color-surface-strong);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      padding: var(--space-lg);
     }
 
-    .summary dl {
+    .summary {
+      background: linear-gradient(160deg, rgba(37, 99, 235, 0.09), rgba(249, 115, 22, 0.08));
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary h3 {
+      margin: 0 0 var(--space-sm) 0;
+    }
+
+    .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: var(--space-sm) var(--space-lg);
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md) var(--space-xl);
       margin: 0;
     }
 
-    .summary dt {
-      font-size: 0.85rem;
+    .summary-grid dt {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
       color: var(--color-text-muted);
+      margin-bottom: var(--space-xs);
     }
 
-    .summary dd {
+    .summary-grid dd {
       margin: 0;
       font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .summary-grid dd.total {
+      font-size: 1.35rem;
+      color: var(--color-primary);
+      letter-spacing: -0.01em;
     }
 
     .footer {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      gap: var(--space-md);
-      align-items: center;
+      gap: var(--space-xl);
+      align-items: flex-end;
     }
 
-    select {
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--color-border);
-      padding: var(--space-sm) var(--space-md);
-      background: var(--color-surface);
-      font-size: 0.9rem;
+    .status-field {
+      min-width: 220px;
+      display: grid;
+      gap: var(--space-xs);
     }
 
     .footer button[type='submit'] {
-      border-radius: var(--radius-md);
-      background: var(--color-primary);
-      color: white;
-      border: 1px solid var(--color-primary-strong);
-      padding: var(--space-md) var(--space-xl);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+      color: #fff;
+      border: none;
+      padding: var(--space-md) var(--space-2xl);
       font-size: 1rem;
-      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.2);
+      font-weight: 600;
+      box-shadow: 0 16px 32px rgba(37, 99, 235, 0.28);
+      transition:
+        transform var(--transition-snappy),
+        box-shadow var(--transition-snappy);
+    }
+
+    .footer button[type='submit']:hover:not([disabled]) {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(37, 99, 235, 0.32);
+    }
+
+    .footer button[type='submit'][disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    @media (max-width: 960px) {
+      .line-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .line-grid > *:last-child {
+        grid-column: span 2;
+      }
     }
 
     @media (max-width: 720px) {
-      .line {
+      form {
+        padding: var(--space-xl);
+      }
+
+      .line-grid {
         grid-template-columns: 1fr;
       }
 
-      .line-actions {
-        justify-content: flex-end;
+      .line-grid > *:last-child {
+        grid-column: auto;
+      }
+
+      .footer {
+        align-items: stretch;
+      }
+
+      .footer button[type='submit'] {
+        width: 100%;
+        justify-content: center;
       }
     }
   `;
@@ -326,85 +568,127 @@ export class InvoiceForm extends LitElement {
     const totals = this.totals;
     return html`
       <form @submit=${this.handleSubmit}>
-        <div class="lines">
-          ${this.lines.map((line) => {
-            return html`
-              <div class="line" data-line-id=${line.id}>
-                <div class="line-main">
-                  <product-picker
-                    .products=${this.products}
-                    .value=${line.productId}
-                    @product-select=${(event: CustomEvent<{ product: Product }>) =>
-                      this.handleProductSelect(line.id, event.detail.product)}
-                  ></product-picker>
-                  <label>
-                    <span>Description</span>
-                    <input
-                      type="text"
-                      placeholder="Optional details"
-                      .value=${line.description ?? ''}
-                      @input=${(event: Event) => this.handleDescriptionInput(line.id, event)}
-                    />
-                  </label>
-                </div>
-                <label>
-                  <span>Quantity</span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    .value=${String(line.quantity)}
-                    @input=${(event: Event) => this.handleQuantityInput(line.id, event)}
-                  />
-                </label>
-                <money-input
-                  label="Unit price"
-                  .value=${line.unitPriceCents}
-                  @value-change=${(event: CustomEvent<{ value: number }>) =>
-                    this.handlePriceChange(line.id, event.detail.value)}
-                ></money-input>
-                <div class="line-actions">
-                  <button
-                    type="button"
-                    @click=${() => this.removeLine(line.id)}
-                    aria-label="Remove line"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            `;
-          })}
-          <button type="button" @click=${this.addLine}>➕ Add item</button>
-        </div>
+        <header class="form-header">
+          <div>
+            <span class="eyebrow">Invoice details</span>
+            <h2>Build your invoice</h2>
+            <p>Add line items, apply adjustments, and review totals before sending.</p>
+          </div>
+          ${this.customer
+            ? html`<dl class="customer-chip">
+                <dt>Billing customer</dt>
+                <dd>
+                  <strong>${this.customer.name}</strong>
+                  ${this.customer.email ? html`<span>${this.customer.email}</span>` : null}
+                  ${this.customer.phone ? html`<span>${this.customer.phone}</span>` : null}
+                </dd>
+              </dl>`
+            : null}
+        </header>
 
-        <div class="totals">
-          <money-input
-            label="Discount"
-            .value=${this.discountCents}
-            @value-change=${(event: CustomEvent<{ value: number }>) =>
-              (this.discountCents = event.detail.value)}
-          ></money-input>
-          <money-input
-            label="Tax"
-            .value=${this.taxCents}
-            @value-change=${(event: CustomEvent<{ value: number }>) =>
-              (this.taxCents = event.detail.value)}
-          ></money-input>
-        </div>
+        <section class="lines-section" aria-label="Line items">
+          <div class="section-header">
+            <h3>Line items</h3>
+            <p>Select products, adjust details, and confirm pricing for this invoice.</p>
+          </div>
+          <div class="lines">
+            ${this.lines.map((line, index) => {
+              return html`
+                <article class="line" data-line-id=${line.id}>
+                  <header>
+                    <span class="line-title">Item ${index + 1}</span>
+                    <button
+                      class="remove-button"
+                      type="button"
+                      ?disabled=${this.lines.length === 1}
+                      @click=${() => this.removeLine(line.id)}
+                      aria-label="Remove line ${index + 1}"
+                    >
+                      ✕
+                    </button>
+                  </header>
+                  <div class="line-grid">
+                    <div class="line-main">
+                      <product-picker
+                        .products=${this.products}
+                        .value=${line.productId}
+                        @product-select=${(event: CustomEvent<{ product: Product }>) =>
+                          this.handleProductSelect(line.id, event.detail.product)}
+                      ></product-picker>
+                      <label>
+                        <span>Description</span>
+                        <input
+                          type="text"
+                          placeholder="Optional details"
+                          .value=${line.description ?? ''}
+                          @input=${(event: Event) => this.handleDescriptionInput(line.id, event)}
+                        />
+                      </label>
+                    </div>
+                    <label>
+                      <span>Quantity</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        .value=${String(line.quantity)}
+                        @input=${(event: Event) => this.handleQuantityInput(line.id, event)}
+                      />
+                    </label>
+                    <money-input
+                      label="Unit price"
+                      .value=${line.unitPriceCents}
+                      @value-change=${(event: CustomEvent<{ value: number }>) =>
+                        this.handlePriceChange(line.id, event.detail.value)}
+                    ></money-input>
+                  </div>
+                </article>
+              `;
+            })}
+          </div>
+          <button class="add-line" type="button" @click=${this.addLine}>
+            <span aria-hidden="true">＋</span>
+            <span>Add another item</span>
+          </button>
+        </section>
 
-        <label>
-          <span>Notes</span>
+        <section class="adjustments" aria-label="Adjustments">
+          <div class="section-header">
+            <h3>Adjustments</h3>
+            <p>Apply optional discounts or taxes. Totals update automatically.</p>
+          </div>
+          <div class="totals">
+            <money-input
+              label="Discount"
+              .value=${this.discountCents}
+              @value-change=${(event: CustomEvent<{ value: number }>) =>
+                (this.discountCents = event.detail.value)}
+            ></money-input>
+            <money-input
+              label="Tax"
+              .value=${this.taxCents}
+              @value-change=${(event: CustomEvent<{ value: number }>) =>
+                (this.taxCents = event.detail.value)}
+            ></money-input>
+          </div>
+        </section>
+
+        <label class="notes-field">
+          <span>Invoice notes</span>
           <textarea
             placeholder="Visible on the invoice"
             .value=${this.notes}
             @input=${this.handleNotesInput}
           ></textarea>
+          <p class="helper">Share helpful context or payment instructions with your customer.</p>
         </label>
 
-        <div class="summary" aria-live="polite">
-          <h3>Invoice summary</h3>
-          <dl>
+        <section class="summary" aria-live="polite">
+          <div class="section-header">
+            <h3>Invoice summary</h3>
+            <p>We’ll keep totals in sync as you make updates.</p>
+          </div>
+          <dl class="summary-grid">
             <div>
               <dt>Subtotal</dt>
               <dd>${formatCurrency(totals.subTotalCents)}</dd>
@@ -419,24 +703,25 @@ export class InvoiceForm extends LitElement {
             </div>
             <div>
               <dt>Total due</dt>
-              <dd>${formatCurrency(totals.grandTotalCents)}</dd>
+              <dd class="total">${formatCurrency(totals.grandTotalCents)}</dd>
             </div>
           </dl>
-        </div>
+        </section>
 
-        <div class="footer">
-          <label>
-            <span>Status</span>
-            <select .value=${this.status} @change=${this.handleStatusChange}>
+        <footer class="footer">
+          <div class="status-field">
+            <label for="invoice-status"><span>Status</span></label>
+            <select id="invoice-status" .value=${this.status} @change=${this.handleStatusChange}>
               ${invoiceStatusSchema.options.map(
                 (status) => html`<option value=${status}>${status}</option>`,
               )}
             </select>
-          </label>
+            <p class="helper">Choose how this invoice should be created.</p>
+          </div>
           <button type="submit" ?disabled=${this.submitting || !this.customer}>
             ${this.submitting ? 'Saving…' : 'Create invoice'}
           </button>
-        </div>
+        </footer>
       </form>
     `;
   }

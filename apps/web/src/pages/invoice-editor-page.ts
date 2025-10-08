@@ -19,55 +19,159 @@ export class InvoiceEditorPage extends LitElement {
   static styles = css`
     :host {
       display: grid;
+      gap: var(--space-2xl);
+    }
+
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
       gap: var(--space-xl);
+      background: linear-gradient(165deg, rgba(37, 99, 235, 0.16), rgba(249, 115, 22, 0.06)),
+        var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      padding: var(--space-2xl);
+      box-shadow: var(--shadow-md);
+    }
+
+    .hero-text {
+      display: grid;
+      gap: var(--space-sm);
+      max-width: 520px;
+    }
+
+    .hero-text h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-text p {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .hero-card {
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: var(--shadow-sm);
+      padding: var(--space-xl);
+      min-width: 260px;
+      display: grid;
+      gap: var(--space-sm);
+    }
+
+    .hero-card dt {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    .hero-card dd {
+      margin: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .hero-card strong {
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-card span {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(320px, 360px) 1fr;
-      gap: var(--space-xl);
+      grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+
+    invoice-form {
+      display: block;
     }
 
     .summary {
       background: var(--color-surface);
       border-radius: var(--radius-lg);
-      border: 1px solid var(--color-border);
-      padding: var(--space-xl);
-      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(22, 163, 74, 0.4);
+      padding: var(--space-2xl);
+      box-shadow: var(--shadow-md);
       display: grid;
+      gap: var(--space-xl);
+    }
+
+    .summary header {
+      display: flex;
+      align-items: center;
       gap: var(--space-md);
+      flex-wrap: wrap;
     }
 
-    .summary h3 {
+    .summary header h3 {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
+      letter-spacing: -0.01em;
     }
 
-    .summary dl {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: var(--space-sm) var(--space-lg);
+    .summary header p {
       margin: 0;
-    }
-
-    .summary dt {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
       color: var(--color-text-muted);
     }
 
-    .summary dd {
-      margin: 0;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: 999px;
+      background: rgba(22, 163, 74, 0.16);
+      color: var(--color-positive);
       font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
 
-    .success {
-      border-radius: var(--radius-lg);
-      padding: var(--space-lg);
-      background: rgba(22, 163, 74, 0.1);
-      border: 1px solid rgba(22, 163, 74, 0.3);
-      color: var(--color-positive);
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-lg);
+      margin: 0;
+    }
+
+    .summary-grid dt {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-xs);
+    }
+
+    .summary-grid dd {
+      margin: 0;
+      font-weight: 600;
+      font-size: 1.05rem;
     }
 
     .actions {
@@ -77,16 +181,65 @@ export class InvoiceEditorPage extends LitElement {
     }
 
     .actions button {
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-md);
       border: 1px solid var(--color-border);
       background: var(--color-surface-strong);
-      padding: var(--space-sm) var(--space-md);
-      font-size: 0.9rem;
+      padding: var(--space-sm) var(--space-lg);
+      font-weight: 600;
+      transition:
+        transform var(--transition-snappy),
+        box-shadow var(--transition-snappy),
+        border-color var(--transition-snappy),
+        color var(--transition-snappy);
+    }
+
+    .actions button:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .actions .primary {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.25);
+    }
+
+    .actions .primary:hover {
+      color: #fff;
+      background: var(--color-primary-strong);
+      border-color: var(--color-primary-strong);
+    }
+
+    .preview {
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(37, 99, 235, 0.25);
+      background: var(--color-surface-strong);
+      padding: var(--space-md);
+    }
+
+    pdf-preview {
+      width: 100%;
+      display: block;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
     }
 
     @media (max-width: 1000px) {
       .layout {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        padding: var(--space-xl);
+      }
+
+      .hero-text h1 {
+        font-size: 1.6rem;
       }
     }
   `;
@@ -202,6 +355,35 @@ export class InvoiceEditorPage extends LitElement {
 
   protected render() {
     return html`
+      <section class="hero">
+        <div class="hero-text">
+          <span class="eyebrow">Invoice builder</span>
+          <h1>New invoice</h1>
+          <p>
+            Choose a customer, add products, and confirm the totals before creating the invoice.
+          </p>
+        </div>
+        ${this.selectedCustomer
+          ? html`<dl class="hero-card">
+              <dt>Billing customer</dt>
+              <dd>
+                <strong>${this.selectedCustomer.name}</strong>
+                ${this.selectedCustomer.email
+                  ? html`<span>${this.selectedCustomer.email}</span>`
+                  : null}
+                ${this.selectedCustomer.phone
+                  ? html`<span>${this.selectedCustomer.phone}</span>`
+                  : null}
+              </dd>
+            </dl>`
+          : html`<dl class="hero-card">
+              <dt>Next step</dt>
+              <dd>
+                <strong>Select a customer</strong>
+                <span>Pick someone from the list to begin building this invoice.</span>
+              </dd>
+            </dl>`}
+      </section>
       <div class="layout">
         <customer-list
           .customers=${this.customers}
@@ -218,8 +400,14 @@ export class InvoiceEditorPage extends LitElement {
       </div>
       ${this.lastInvoice
         ? html`<section class="summary">
-            <div class="success">Invoice ${this.lastInvoice.invoiceNo} created.</div>
-            <dl>
+            <header>
+              <span class="badge">Success</span>
+              <div>
+                <h3>Invoice ${this.lastInvoice.invoiceNo} created</h3>
+                <p>You're ready to share it or record a payment.</p>
+              </div>
+            </header>
+            <dl class="summary-grid">
               <div>
                 <dt>Customer</dt>
                 <dd>${this.lastInvoice.customer?.name ?? this.selectedCustomer?.name ?? '—'}</dd>
@@ -234,10 +422,14 @@ export class InvoiceEditorPage extends LitElement {
               </div>
             </dl>
             <div class="actions">
-              <button type="button" @click=${this.goToPayments}>Record payment</button>
-              <button type="button" @click=${this.goToPdf}>Reports</button>
+              <button class="primary" type="button" @click=${this.goToPayments}>
+                Record payment
+              </button>
+              <button type="button" @click=${this.goToPdf}>Open reports</button>
             </div>
-            <pdf-preview .invoiceId=${this.lastInvoice.id} auto></pdf-preview>
+            <div class="preview">
+              <pdf-preview .invoiceId=${this.lastInvoice.id} auto></pdf-preview>
+            </div>
           </section>`
         : null}
     `;

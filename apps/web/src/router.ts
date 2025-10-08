@@ -51,6 +51,7 @@ export const navigationRoutes: NavigationRoute[] = [
     icon: '📄',
     description: 'Search, filter, and review invoices',
     includeInSidebar: true,
+    exact: true,
     render: () => html`<invoices-page></invoices-page>`,
   },
   {
